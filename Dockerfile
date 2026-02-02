@@ -1,13 +1,14 @@
-# ETAPA 1: Construir o site usando uma imagem que já tem Gradle
-FROM gradle:jdk21-alpine AS builder
+# ETAPA 1: Construção (Usando Ubuntu/Jammy que é mais compatível)
+FROM gradle:8.5-jdk21-jammy AS builder
 WORKDIR /app
 COPY . .
-# Aqui usamos o 'gradle' do sistema, não o arquivo 'gradlew'
-RUN gradle clean build -x test --no-daemon
+# O comando abaixo constrói o jar ignorando testes para ser mais rápido e seguro
+RUN gradle bootJar -x test --no-daemon
 
-# ETAPA 2: Criar a imagem final leve apenas para rodar
-FROM eclipse-temurin:21-jdk-alpine
+# ETAPA 2: Imagem Final (Leve apenas para rodar)
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-# Pega o arquivo .jar criado na etapa anterior
+# Copia o arquivo .jar gerado na etapa anterior
 COPY --from=builder /app/build/libs/*.jar app.jar
+EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
