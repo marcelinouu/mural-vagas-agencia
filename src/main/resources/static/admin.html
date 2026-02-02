@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestão de Vagas - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* == ESTILOS GERAIS (Modo Claro) == */
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Labels e Títulos Pretos no Claro */
+        .form-label { font-weight: 800; color: #000; }
+        h4 { font-weight: 800; color: #444; }
+
+        /* Tabela no Modo Claro */
+        .table { --bs-table-bg: transparent; }
+        .table thead th {
+            background-color: #e9ecef;
+            color: #000;
+            font-weight: normal;
+        }
+
+        /* == MODO ESCURO (CORREÇÕES DEFINITIVAS) == */
+        body.dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        body.dark-mode .card {
+            background-color: #1f1f1f;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        /* FORÇA TODO TEXTO DA TABELA A SER BRANCO */
+        body.dark-mode .table,
+        body.dark-mode .table tr,
+        body.dark-mode .table td,
+        body.dark-mode .table th {
+            color: #ffffff !important;
+        }
+
+        /* Títulos e Labels Brancos */
+        body.dark-mode h4,
+        body.dark-mode .form-label {
+            color: #ffffff !important;
+        }
+
+        /* Campos de Input Escuros */
+        body.dark-mode .form-control,
+        body.dark-mode .form-select {
+            background-color: #2c2c2c;
+            border-color: #444;
+            color: white;
+        }
+
+        /* Cabeçalho da Tabela Escuro */
+        body.dark-mode .table thead th {
+            background-color: #333;
+            color: #fff;
+            border-color: #444;
+        }
+
+        /* == OUTROS == */
+        h2 { color: #0d6efd; font-weight: 800; }
+
+        .btn-trash { color: #dc3545; border-color: #dc3545; }
+        .btn-trash:hover { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex align-items-center position-relative mb-4 py-3 border-bottom">
+        <div>
+            <img src="/logo.png" alt="Logo" style="height: 50px; width: auto;" onerror="this.style.display='none'">
+        </div>
+
+        <div class="position-absolute top-50 start-50 translate-middle">
+            <h2 class="m-0 text-primary text-uppercase text-nowrap" style="font-size: 1.8rem;">PAINEL DE GESTÃO</h2>
+        </div>
+
+        <div class="ms-auto d-flex gap-2 z-1">
+            <button class="btn btn-success fw-bold shadow-sm" onclick="window.open('/vagas/relatorio', '_blank')">
+                🖨️ PDF
+            </button>
+            <button class="btn btn-outline-secondary fw-bold shadow-sm" onclick="alternarTema()">
+                🌓 Tema
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card p-4">
+                <h4 class="mb-3">Nova Vaga</h4>
+                <form id="formVaga">
+
+                    <div class="row mb-2">
+                        <div class="col-4">
+                            <label class="form-label">Cód.</label>
+                            <input type="text" id="codigo" class="form-control" required>
+                        </div>
+                        <div class="col-8">
+                            <label class="form-label">Título da Vaga</label>
+                            <input type="text" id="titulo" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Salário</label>
+                        <input type="text" id="salario" class="form-control" required>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <label class="form-label">Local</label>
+                            <input type="text" id="local" class="form-control" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Experiência?</label>
+                            <select id="experiencia" class="form-select">
+                                <option value="Sim">SIM</option>
+                                <option value="Não">NÃO</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Benefícios</label>
+                        <input type="text" id="beneficios" class="form-control" required>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">Descrição <span style="font-size: 0.8em; color: #dc3545; font-weight: normal;">(Opcional - Máx 2 linhas na TV)</span></label>
+                        <textarea id="descricao" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mural</label>
+                        <select id="categoria" class="form-select">
+                            <option value="CONVENCIONAL">Convencional</option>
+                            <option value="SUPERIOR">Ensino Superior</option>
+                            <option value="PCD">PCD</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2 shadow-sm">CADASTRAR VAGA</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card p-4">
+                <h4 class="mb-3">Vagas Ativas</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                        <tr>
+                            <th>Cód.</th>
+                            <th>Título</th>
+                            <th>Exp?</th>
+                            <th>Mural</th>
+                            <th class="text-center">Ação</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tabela-corpo">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_URL = '/vagas';
+
+    // Inicia listagem
+    listarVagas();
+
+    // Função de Trocar Tema
+    function alternarTema() {
+        document.body.classList.toggle('dark-mode');
+    }
+
+    async function listarVagas() {
+        try {
+            const resposta = await fetch(API_URL);
+            const vagas = await resposta.json();
+
+            const tabela = document.getElementById('tabela-corpo');
+            tabela.innerHTML = '';
+
+            vagas.forEach(vaga => {
+                const exp = vaga.experiencia || '-';
+
+                // Badges de Experiência
+                const badgeExp = exp === 'Não'
+                    ? '<span class="badge bg-success">Não Exige</span>'
+                    : '<span class="badge bg-primary">Com Exp.</span>';
+
+                // Cores das Categorias
+                let corBadge = 'bg-secondary';
+                if(vaga.categoria === 'CONVENCIONAL') corBadge = 'bg-primary';
+                if(vaga.categoria === 'SUPERIOR') corBadge = 'bg-warning text-dark';
+                if(vaga.categoria === 'PCD') corBadge = 'bg-success';
+
+                // Nota: Removi classes de cor fixa do texto para o CSS controlar (branco no escuro/preto no claro)
+                tabela.innerHTML += `
+                    <tr>
+                        <td class="text-primary fw-bold">${vaga.codigo || '-'}</td>
+                        <td>${vaga.titulo}</td>
+                        <td>${badgeExp}</td>
+                        <td><span class="badge ${corBadge}">${vaga.categoria}</span></td>
+                        <td class="text-center">
+                            <button onclick="deletarVaga(${vaga.id})" class="btn btn-sm btn-trash">
+                                🗑️
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } catch (erro) {
+            console.error("Erro ao listar:", erro);
+        }
+    }
+
+    async function deletarVaga(id) {
+        if(confirm("Deseja apagar esta vaga?")) {
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            listarVagas();
+        }
+    }
+
+    document.getElementById('formVaga').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const dados = {
+            titulo: document.getElementById('titulo').value,
+            codigo: document.getElementById('codigo').value,
+            local: document.getElementById('local').value,
+            experiencia: document.getElementById('experiencia').value,
+            salario: document.getElementById('salario').value,
+            beneficios: document.getElementById('beneficios').value,
+            descricao: document.getElementById('descricao').value,
+            categoria: document.getElementById('categoria').value
+        };
+
+        const resposta = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+
+        if(resposta.ok) {
+            document.getElementById('formVaga').reset();
+            document.getElementById('codigo').focus();
+            listarVagas();
+        } else {
+            alert("Erro ao salvar!");
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,14 +1,17 @@
-# ETAPA 1: Construção (Usando Ubuntu/Jammy que é mais compatível)
-FROM gradle:8.5-jdk21-jammy AS builder
-WORKDIR /app
-COPY . .
-# O comando abaixo constrói o jar ignorando testes para ser mais rápido e seguro
-RUN gradle bootJar -x test --no-daemon
+# Usa uma base leve do Java 21
+FROM eclipse-temurin:21-jdk-alpine
 
-# ETAPA 2: Imagem Final (Leve apenas para rodar)
-FROM eclipse-temurin:21-jre-alpine
+# Cria uma pasta para o app
 WORKDIR /app
-# Copia o arquivo .jar gerado na etapa anterior
-COPY --from=builder /app/build/libs/*.jar app.jar
-EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+
+# Copia os arquivos do projeto para dentro do Render
+COPY . .
+
+# Dá permissão para o construtor rodar
+RUN chmod +x gradlew
+
+# Constrói o site (cria o arquivo .jar)
+RUN ./gradlew clean build -x test
+
+# Comando para iniciar o site (procura qualquer arquivo .jar gerado)
+CMD ["sh", "-c", "java -jar build/libs/*.jar"]
