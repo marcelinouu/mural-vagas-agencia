@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController // Diz que essa classe vai responder requisições da Web
-@RequestMapping("/vagas") // O endereço base será: localhost:8080/vagas
+@RequestMapping("/api/vagas") // O endereço base será: localhost:8080/vagas
 public class VagaController {
 
     @Autowired

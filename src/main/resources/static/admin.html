@@ -2,276 +2,320 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Gestão de Vagas - Admin</title>
+    <title>Painel Administrativo - Agência</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
     <style>
-        /* == ESTILOS GERAIS (Modo Claro) == */
-        body {
-            background-color: #f4f6f9;
-            color: #333;
-            transition: all 0.3s ease;
-        }
-
-        .card {
-            background-color: #ffffff;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: background-color 0.3s ease;
-        }
-
-        /* Labels e Títulos Pretos no Claro */
-        .form-label { font-weight: 800; color: #000; }
-        h4 { font-weight: 800; color: #444; }
-
-        /* Tabela no Modo Claro */
-        .table { --bs-table-bg: transparent; }
-        .table thead th {
-            background-color: #e9ecef;
-            color: #000;
-            font-weight: normal;
-        }
-
-        /* == MODO ESCURO (CORREÇÕES DEFINITIVAS) == */
-        body.dark-mode {
-            background-color: #121212;
-            color: #ffffff;
-        }
-
-        body.dark-mode .card {
-            background-color: #1f1f1f;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-
-        /* FORÇA TODO TEXTO DA TABELA A SER BRANCO */
-        body.dark-mode .table,
-        body.dark-mode .table tr,
-        body.dark-mode .table td,
-        body.dark-mode .table th {
-            color: #ffffff !important;
-        }
-
-        /* Títulos e Labels Brancos */
-        body.dark-mode h4,
-        body.dark-mode .form-label {
-            color: #ffffff !important;
-        }
-
-        /* Campos de Input Escuros */
-        body.dark-mode .form-control,
-        body.dark-mode .form-select {
-            background-color: #2c2c2c;
-            border-color: #444;
-            color: white;
-        }
-
-        /* Cabeçalho da Tabela Escuro */
-        body.dark-mode .table thead th {
-            background-color: #333;
-            color: #fff;
-            border-color: #444;
-        }
-
-        /* == OUTROS == */
-        h2 { color: #0d6efd; font-weight: 800; }
-
-        .btn-trash { color: #dc3545; border-color: #dc3545; }
-        .btn-trash:hover { background-color: #dc3545; color: white; }
+        .nav-pills .nav-link.active { background-color: #0d6efd; }
+        .nav-pills .nav-link { color: #333; font-weight: bold; font-size: 1.2rem; margin-right: 10px; border: 1px solid #ddd; }
+        .form-vaga { background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .info-row { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+        .info-row .form-control { flex: 1; }
+        .info-row .btn { flex: 0 0 auto; }
+        .processo-item { border: 1px solid #eee; border-radius: 6px; padding: 8px; margin-bottom: 8px; }
+        .processo-item .form-control { margin-bottom: 6px; }
     </style>
 </head>
-<body>
+<body class="bg-light">
 
-<div class="container-fluid mt-4">
+<div class="container py-4">
 
-    <div class="d-flex align-items-center position-relative mb-4 py-3 border-bottom">
-        <div>
-            <img src="/logo.png" alt="Logo" style="height: 50px; width: auto;" onerror="this.style.display='none'">
-        </div>
-
-        <div class="position-absolute top-50 start-50 translate-middle">
-            <h2 class="m-0 text-primary text-uppercase text-nowrap" style="font-size: 1.8rem;">PAINEL DE GESTÃO</h2>
-        </div>
-
-        <div class="ms-auto d-flex gap-2 z-1">
-            <button class="btn btn-success fw-bold shadow-sm" onclick="window.open('/vagas/relatorio', '_blank')">
-                🖨️ PDF
-            </button>
-            <button class="btn btn-outline-secondary fw-bold shadow-sm" onclick="alternarTema()">
-                🌓 Tema
-            </button>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="bi bi-gear-fill"></i> Painel Administrativo</h2>
+        <a href="/tv.html" target="_blank" class="btn btn-outline-dark"><i class="bi bi-tv"></i> Ver TV</a>
     </div>
 
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card p-4">
-                <h4 class="mb-3">Nova Vaga</h4>
-                <form id="formVaga">
+    <ul class="nav nav-pills mb-4" id="pills-tab">
+        <li class="nav-item">
+            <button class="nav-link active" id="btn-vagas" onclick="mostrarAba('vagas')">GERENCIAR VAGAS</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="btn-infos" onclick="mostrarAba('infos')">GERENCIAR TELA INFORMATIVA</button>
+        </li>
+    </ul>
 
-                    <div class="row mb-2">
-                        <div class="col-4">
-                            <label class="form-label">Cód.</label>
-                            <input type="text" id="codigo" class="form-control" required>
-                        </div>
-                        <div class="col-8">
-                            <label class="form-label">Título da Vaga</label>
-                            <input type="text" id="titulo" class="form-control" required>
-                        </div>
-                    </div>
+    <div id="secao-vagas">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-vaga">
+                    <h5 class="mb-3 text-primary"><i class="bi bi-plus-circle"></i> Nova Vaga</h5>
+                    <form id="formVaga">
+                        <input type="text" id="codigo" class="form-control mb-2" placeholder="Código da Vaga (Ex: 123)">
+                        <input type="text" id="titulo" class="form-control mb-2" placeholder="Título da Vaga" required>
+                        <input type="text" id="salario" class="form-control mb-2" placeholder="Salário (Ex: 1.800,00)">
+                        <input type="text" id="local" class="form-control mb-2" placeholder="Cidade/Local">
+                        <textarea id="beneficios" class="form-control mb-2" rows="3" placeholder="Benefícios"></textarea>
 
-                    <div class="mb-2">
-                        <label class="form-label">Salário</label>
-                        <input type="text" id="salario" class="form-control" required>
-                    </div>
-
-                    <div class="row mb-2">
-                        <div class="col-6">
-                            <label class="form-label">Local</label>
-                            <input type="text" id="local" class="form-control" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Experiência?</label>
-                            <select id="experiencia" class="form-select">
-                                <option value="Sim">SIM</option>
-                                <option value="Não">NÃO</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mb-2">
-                        <label class="form-label">Benefícios</label>
-                        <input type="text" id="beneficios" class="form-control" required>
-                    </div>
-
-                    <div class="mb-2">
-                        <label class="form-label">Descrição <span style="font-size: 0.8em; color: #dc3545; font-weight: normal;">(Opcional - Máx 2 linhas na TV)</span></label>
-                        <textarea id="descricao" class="form-control" rows="2"></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Mural</label>
-                        <select id="categoria" class="form-select">
+                        <select id="tipo" class="form-control mb-3">
                             <option value="CONVENCIONAL">Convencional</option>
                             <option value="SUPERIOR">Ensino Superior</option>
                             <option value="PCD">PCD</option>
                         </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2 shadow-sm">CADASTRAR VAGA</button>
-                </form>
-            </div>
-        </div>
 
-        <div class="col-md-8">
-            <div class="card p-4">
-                <h4 class="mb-3">Vagas Ativas</h4>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="experiencia">
+                            <label class="form-check-label">Exige Experiência?</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">CADASTRAR VAGA</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="form-vaga">
+                    <h5 class="mb-3 text-secondary">Vagas Ativas no Sistema</h5>
+                    <table class="table">
+                        <thead class="table-dark">
                         <tr>
-                            <th>Cód.</th>
+                            <th>Código</th>
                             <th>Título</th>
-                            <th>Exp?</th>
-                            <th>Mural</th>
-                            <th class="text-center">Ação</th>
+                            <th>Tipo</th>
+                            <th>Ação</th>
                         </tr>
                         </thead>
-                        <tbody id="tabela-corpo">
-                        </tbody>
+                        <tbody id="tabela-vagas"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
+
+    <div id="secao-infos" style="display: none;">
+        <form id="formInfos">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card p-3 border-primary h-100">
+                        <h5 class="text-primary fw-bold">🎓 Cursos</h5>
+                        <div id="cursos-list"></div>
+                        <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" onclick="addCurso()">Adicionar curso</button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-3 border-success h-100">
+                        <h5 class="text-success fw-bold">💼 Processo Seletivo</h5>
+                        <div id="processos-list"></div>
+                        <button type="button" class="btn btn-outline-success btn-sm w-100 mt-2" onclick="addProcesso()">Adicionar empresa</button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-3 border-danger h-100">
+                        <h5 class="text-danger fw-bold">📅 Cronograma</h5>
+                        <div id="cronograma-list"></div>
+                        <button type="button" class="btn btn-outline-danger btn-sm w-100 mt-2" onclick="addCronograma()">Adicionar evento</button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" onclick="salvarInfos()" class="btn btn-dark btn-lg w-100 mt-4">SALVAR INFORMAÇÕES</button>
+        </form>
+    </div>
+
 </div>
 
 <script>
-    const API_URL = '/vagas';
+    const API_VAGAS = "/api/vagas";
+    const API_INFOS = "/api/infos";
 
-    // Inicia listagem
-    listarVagas();
-
-    // Função de Trocar Tema
-    function alternarTema() {
-        document.body.classList.toggle('dark-mode');
+    function mostrarAba(aba) {
+        document.getElementById('secao-vagas').style.display = aba === 'vagas' ? 'block' : 'none';
+        document.getElementById('secao-infos').style.display = aba === 'infos' ? 'block' : 'none';
+        document.getElementById('btn-vagas').classList.toggle('active', aba === 'vagas');
+        document.getElementById('btn-infos').classList.toggle('active', aba === 'infos');
     }
 
-    async function listarVagas() {
-        try {
-            const resposta = await fetch(API_URL);
-            const vagas = await resposta.json();
+    // --- LÓGICA DAS VAGAS ---
 
-            const tabela = document.getElementById('tabela-corpo');
-            tabela.innerHTML = '';
-
-            vagas.forEach(vaga => {
-                const exp = vaga.experiencia || '-';
-
-                // Badges de Experiência
-                const badgeExp = exp === 'Não'
-                    ? '<span class="badge bg-success">Não Exige</span>'
-                    : '<span class="badge bg-primary">Com Exp.</span>';
-
-                // Cores das Categorias
-                let corBadge = 'bg-secondary';
-                if(vaga.categoria === 'CONVENCIONAL') corBadge = 'bg-primary';
-                if(vaga.categoria === 'SUPERIOR') corBadge = 'bg-warning text-dark';
-                if(vaga.categoria === 'PCD') corBadge = 'bg-success';
-
-                // Nota: Removi classes de cor fixa do texto para o CSS controlar (branco no escuro/preto no claro)
-                tabela.innerHTML += `
-                    <tr>
-                        <td class="text-primary fw-bold">${vaga.codigo || '-'}</td>
-                        <td>${vaga.titulo}</td>
-                        <td>${badgeExp}</td>
-                        <td><span class="badge ${corBadge}">${vaga.categoria}</span></td>
-                        <td class="text-center">
-                            <button onclick="deletarVaga(${vaga.id})" class="btn btn-sm btn-trash">
-                                🗑️
-                            </button>
-                        </td>
-                    </tr>
-                `;
+    function carregarVagas() {
+        fetch(API_VAGAS)
+            .then(res => res.json())
+            .then(vagas => {
+                const tbody = document.getElementById('tabela-vagas');
+                tbody.innerHTML = '';
+                vagas.forEach(v => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${v.codigo || "-"}</td>
+                            <td><strong>${v.titulo}</strong></td>
+                            <td>${v.categoria}</td>
+                            <td><button onclick="deletarVaga(${v.id})" class="btn btn-danger btn-sm">Excluir</button></td>
+                        </tr>`;
+                });
             });
-        } catch (erro) {
-            console.error("Erro ao listar:", erro);
-        }
     }
 
-    async function deletarVaga(id) {
-        if(confirm("Deseja apagar esta vaga?")) {
-            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-            listarVagas();
-        }
-    }
-
-    document.getElementById('formVaga').addEventListener('submit', async (e) => {
+    document.getElementById('formVaga').addEventListener('submit', function(e) {
         e.preventDefault();
-
         const dados = {
-            titulo: document.getElementById('titulo').value,
             codigo: document.getElementById('codigo').value,
-            local: document.getElementById('local').value,
-            experiencia: document.getElementById('experiencia').value,
+            titulo: document.getElementById('titulo').value,
             salario: document.getElementById('salario').value,
+            local: document.getElementById('local').value,
             beneficios: document.getElementById('beneficios').value,
-            descricao: document.getElementById('descricao').value,
-            categoria: document.getElementById('categoria').value
+            categoria: document.getElementById('tipo').value,
+            experiencia: document.getElementById('experiencia').checked ? "Sim" : "Não"
+        };
+        fetch(API_VAGAS, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(dados)
+        }).then(() => { carregarVagas(); document.getElementById('formVaga').reset(); });
+    });
+
+    function deletarVaga(id) {
+        if(confirm("Deseja realmente excluir?")) {
+            fetch(API_VAGAS + "/" + id, { method: 'DELETE' })
+                .then(() => carregarVagas());
+        }
+    }
+
+    // --- LÓGICA DAS INFOS ---
+
+    function criarInput(placeholder, className, value) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = `form-control ${className}`;
+        input.placeholder = placeholder;
+        input.value = value || '';
+        return input;
+    }
+
+    function criarBotaoRemover() {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-outline-danger btn-sm';
+        btn.innerHTML = '<i class="bi bi-x-lg"></i>';
+        btn.addEventListener('click', () => btn.parentElement.remove());
+        return btn;
+    }
+
+    function addCurso(nome = '', detalhe = '') {
+        const row = document.createElement('div');
+        row.className = 'info-row';
+        row.append(
+            criarInput('Curso', 'curso-nome', nome),
+            criarInput('Detalhes', 'curso-detalhe', detalhe),
+            criarBotaoRemover()
+        );
+        document.getElementById('cursos-list').appendChild(row);
+    }
+
+    function addProcesso(empresa = '', data = '', texto = '') {
+        const wrap = document.createElement('div');
+        wrap.className = 'processo-item';
+
+        const empresaInput = criarInput('Empresa', 'processo-empresa', empresa);
+        const dataInput = criarInput('Data e Horário', 'processo-data', data);
+        const textoArea = document.createElement('textarea');
+        textoArea.className = 'form-control processo-texto';
+        textoArea.rows = 4;
+        textoArea.placeholder = 'Texto do processo (uma linha por item)';
+        textoArea.value = texto || '';
+
+        const btnRemover = criarBotaoRemover();
+        btnRemover.className = 'btn btn-outline-danger btn-sm w-100';
+
+        wrap.append(empresaInput, dataInput, textoArea, btnRemover);
+        document.getElementById('processos-list').appendChild(wrap);
+    }
+
+    function addCronograma(data = '', evento = '') {
+        const row = document.createElement('div');
+        row.className = 'info-row';
+        row.append(
+            criarInput('Data', 'cronograma-data', data),
+            criarInput('Evento', 'cronograma-evento', evento),
+            criarBotaoRemover()
+        );
+        document.getElementById('cronograma-list').appendChild(row);
+    }
+
+    function carregarInfos() {
+        fetch(API_INFOS).then(r => r.json()).then(d => {
+            const cursos = Array.isArray(d.cursos) ? d.cursos : [
+                { nome: d.curso1, detalhe: d.curso1Detalhe },
+                { nome: d.curso2, detalhe: d.curso2Detalhe },
+                { nome: d.curso3, detalhe: d.curso3Detalhe }
+            ].filter(c => c.nome || c.detalhe);
+
+            const processos = Array.isArray(d.processos) ? d.processos : [{
+                empresa: d.empresaNome,
+                data: d.empresaData,
+                texto: Array.isArray(d.processoVagas) ? d.processoVagas : [d.vaga1, d.vaga2, d.vaga3].filter(Boolean)
+            }].filter(p => p.empresa || p.data || (p.texto && p.texto.length));
+
+            const cronograma = Array.isArray(d.cronograma) ? d.cronograma : [
+                { data: d.data1, evento: d.evento1 },
+                { data: d.data2, evento: d.evento2 },
+                { data: d.data3, evento: d.evento3 }
+            ].filter(c => c.data || c.evento);
+
+            document.getElementById('cursos-list').innerHTML = '';
+            document.getElementById('processos-list').innerHTML = '';
+            document.getElementById('cronograma-list').innerHTML = '';
+
+            if (cursos.length === 0) addCurso();
+            cursos.forEach(c => addCurso(c.nome, c.detalhe));
+
+            if (processos.length === 0) addProcesso();
+            processos.forEach(p => addProcesso(p.empresa || '', p.data || '', (p.texto || []).join('\n')));
+
+            if (cronograma.length === 0) addCronograma();
+            cronograma.forEach(c => addCronograma(c.data, c.evento));
+        });
+    }
+
+    function salvarInfos() {
+        const d = {
+            cursos: [],
+            processos: [],
+            cronograma: []
         };
 
-        const resposta = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dados)
+        document.querySelectorAll('#cursos-list .info-row').forEach(row => {
+            const nome = row.querySelector('.curso-nome').value.trim();
+            const detalhe = row.querySelector('.curso-detalhe').value.trim();
+            if (nome || detalhe) d.cursos.push({ nome, detalhe });
         });
 
-        if(resposta.ok) {
-            document.getElementById('formVaga').reset();
-            document.getElementById('codigo').focus();
-            listarVagas();
+        document.querySelectorAll('#processos-list .processo-item').forEach(item => {
+            const empresa = item.querySelector('.processo-empresa').value.trim();
+            const data = item.querySelector('.processo-data').value.trim();
+            const texto = item.querySelector('.processo-texto').value
+                .split('\n')
+                .map(l => l.trim())
+                .filter(Boolean);
+            if (empresa || data || texto.length) {
+                d.processos.push({ empresa, data, texto });
+            }
+        });
+
+        if (d.processos.length > 0) {
+            d.empresaNome = d.processos[0].empresa || '';
+            d.empresaData = d.processos[0].data || '';
+            d.processoVagas = d.processos[0].texto || [];
         } else {
-            alert("Erro ao salvar!");
+            d.empresaNome = '';
+            d.empresaData = '';
+            d.processoVagas = [];
         }
-    });
+
+        document.querySelectorAll('#cronograma-list .info-row').forEach(row => {
+            const data = row.querySelector('.cronograma-data').value.trim();
+            const evento = row.querySelector('.cronograma-evento').value.trim();
+            if (data || evento) d.cronograma.push({ data, evento });
+        });
+
+        fetch(API_INFOS, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(d)
+        }).then(() => alert("Informações da TV atualizadas!"));
+    }
+
+    // Início
+    carregarVagas();
+    carregarInfos();
 </script>
 </body>
 </html>

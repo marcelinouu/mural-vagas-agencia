@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Painel de Vagas - Agência</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
   <style>
     /* == GERAL == */
@@ -18,83 +19,134 @@
     header {
         background-color: #fff;
         padding: 0 20px;
-        height: 7vh; /* Altura original que você gostou */
-
+        height: 7vh;
         display: grid;
         grid-template-columns: 1fr auto 1fr;
         align-items: center;
-
         border-bottom: 4px solid #007bff;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        transition: border-color 0.5s;
     }
 
-    .logo-area { justify-self: start; }
-
-    .logo-area img {
-        height: 5.5vh; /* Tamanho original da logo */
-        width: auto;
-        display: block;
-    }
+    .logo-area img { height: 5.5vh; width: auto; display: block; }
 
     h1 {
-        margin: 0;
-        font-size: 1.6em; /* Reduzi levemente pra caber os titulos longos */
-        text-transform: uppercase;
-        color: #2c3e50;
-        letter-spacing: 1px;
-        text-align: center;
-        white-space: nowrap;
+        margin: 0; font-size: 1.6em; text-transform: uppercase;
+        color: #2c3e50; letter-spacing: 1px; text-align: center; white-space: nowrap;
     }
 
-    #relogio {
-        font-size: 1.5em; color: #555; font-weight: 900; justify-self: end;
-    }
+    #relogio { font-size: 1.5em; color: #555; font-weight: 900; justify-self: end; }
 
-    /* == GRADE 6x5 == */
+    /* == CONTAINER PRINCIPAL == */
     .container {
-        padding: 6px;
+        padding: 10px;
+        box-sizing: border-box;
+        height: 92vh;
         display: grid;
+        gap: 10px;
+    }
+
+    /* == ESTILO DAS VAGAS (Grade 6x5) == */
+    .modo-vagas {
         grid-template-columns: repeat(6, 1fr);
         grid-template-rows: repeat(5, 1fr);
-        gap: 6px;
-        height: 92vh;
-        box-sizing: border-box;
     }
 
-    /* == CARTÃO == */
+    /* == ESTILO DAS INFORMAÇÕES (3 Colunas) == */
+    .modo-info {
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: 1fr;
+    }
+
+    /* == CARTÃO DE VAGA == */
     .card-vaga {
-        background-color: #fff; border-radius: 4px; padding: 6px 8px;
+        background-color: #fff; border-radius: 4px; padding: 10px 12px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.15); border-left: 5px solid #ccc;
         display: flex; flex-direction: column; justify-content: flex-start;
         overflow: hidden; position: relative;
     }
-
-    .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; flex-shrink: 0; }
-    .codigo-badge { background-color: #e9ecef; padding: 2px 5px; border-radius: 3px; color: #000; font-weight: 900; font-size: 0.95em; }
-    .local-texto { font-size: 0.7em; color: #555; font-weight: bold; text-transform: uppercase; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
-
-    .card-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 1px; }
-
-    .tag-exp { font-size: 0.75em; font-weight: 800; margin-bottom: 1px; display: block; }
+    .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .codigo-badge { background-color: #e9ecef; padding: 2px 5px; border-radius: 3px; font-weight: 900; font-size: 0.95em; }
+    .local-texto { font-size: 0.7em; font-weight: bold; text-transform: uppercase; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+    .tag-exp { font-size: 0.75em; font-weight: 800; display: block; }
     .com-exp { color: #0d6efd; }
     .sem-exp { color: #198754; }
-
     .card-vaga h2 { color: #2c3e50; margin: 0; font-size: 1em; line-height: 1.1; font-weight: 900; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .salario { font-size: 1.1em; color: #27ae60; font-weight: 700; white-space: nowrap; margin-top: 2px; }
+    .beneficios { font-size: 0.8em; font-weight: 600; color: #000; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-top: 4px; }
 
-    .salario { font-size: 1.1em; color: #27ae60; font-weight: 700; margin: 2px 0 0 0; white-space: nowrap; }
+    /* == CARTÃO DE INFORMAÇÃO == */
+    .card-info {
+        background: white; border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        display: flex; flex-direction: column;
+        overflow: hidden; height: 100%;
+    }
+    .info-header {
+        padding: 15px; color: white; text-align: center;
+        font-size: 1.4em; font-weight: bold; text-transform: uppercase;
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .info-body {
+        padding: 20px; flex-grow: 1; overflow-y: auto;
+        font-size: 1.1em;
+    }
+    .info-item {
+        border-bottom: 1px solid #eee; padding: 15px 0;
+    }
+    .info-item strong { display: block; color: #2c3e50; font-size: 1.2em; }
+    .info-item small { color: #666; }
+    .info-alert {
+        padding: 8px 12px;
+        margin: 10px 14px 0;
+        border-radius: 6px;
+        background: #f3f5f7;
+        color: #333;
+        font-weight: 700;
+        text-align: center;
+        font-size: 0.95em;
+    }
+    .processo-texto { margin-top: 12px; line-height: 1.5; font-size: 20px; }
+    .processo-bloco { margin-bottom: 18px; }
+    .processo-bloco:last-child { margin-bottom: 0; }
+    .processo-empresa { font-size: 28px; }
+    .processo-data { margin-top: 6px; }
 
-    .beneficios {
-        font-size: 0.8em; color: #333; font-weight: 600; line-height: 1.2;
-        white-space: normal; display: -webkit-box; -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;
+    .nav-buttons {
+        position: fixed;
+        top: 50%;
+        left: 0;
+        right: 0;
+        transform: translateY(-50%);
+        display: flex;
+        justify-content: space-between;
+        padding: 0 10px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    .nav-buttons.show { opacity: 1; }
+    .nav-btn {
+        pointer-events: auto;
+        border: none;
+        background: rgba(0,0,0,0.55);
+        color: #fff;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    .descricao-extra {
-        font-size: 0.75em; color: #777; margin-top: 3px; border-top: 1px solid #eee; padding-top: 2px;
-        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;
-    }
+    /* Cores das Colunas Info */
+    .bg-cursos { background-color: #0d6efd; }
+    .bg-processos { background-color: #198754; }
+    .bg-cronograma { background-color: #d63384; }
 
-    .barra-tempo { height: 4px; background-color: #007bff; width: 0%; position: absolute; bottom: 0; left: 0; }
+    .barra-tempo { height: 4px; background-color: #007bff; width: 0%; position: absolute; bottom: 0; left: 0; transition: width linear; }
   </style>
 </head>
 <body>
@@ -109,59 +161,183 @@
 
 <div class="container" id="lista-vagas"></div>
 <div class="barra-tempo" id="barra-progresso"></div>
+<div class="nav-buttons" id="nav-buttons">
+  <button class="nav-btn" id="btn-prev" aria-label="Anterior">‹</button>
+  <button class="nav-btn" id="btn-next" aria-label="Próximo">›</button>
+</div>
 
 <script>
   const TEMPO_POR_TELA = 20000;
-  const categorias = ["CONVENCIONAL", "SUPERIOR", "PCD"];
+  const categorias = ["CONVENCIONAL", "SUPERIOR", "PCD", "INFO"];
 
-  // MAPA DE NOMES (Backend -> O que aparece na Tela)
   const nomesExibicao = {
       "CONVENCIONAL": "PAINEL DE VAGAS",
-      "SUPERIOR": "PAINEL DE VAGAS DE ENSINO SUPERIOR - MASTERJOB",
-      "PCD": "PAINEL DE VAGAS PCD/PPD (PARA PESSOAS COM DEFICIÊNCIA)"
+      "SUPERIOR": "VAGAS DE ENSINO SUPERIOR - MASTERJOB",
+      "PCD": "VAGAS PCD (PESSOAS COM DEFICIÊNCIA)",
+      "INFO": "INFORMAÇÕES E SERVIÇOS AO CIDADÃO"
   };
 
   const cores = {
       "CONVENCIONAL": "#0056b3",
       "SUPERIOR": "#d35400",
-      "PCD": "#16a085"
+      "PCD": "#16a085",
+      "INFO": "#6f42c1"
   };
 
   let indiceAtual = 0;
 
-  async function carregarCiclo() {
+  async function renderizarCategoria() {
       const categoriaAtual = categorias[indiceAtual];
       const cor = cores[categoriaAtual];
+      const container = document.getElementById('lista-vagas');
 
-      // AQUI É A MÁGICA: Usa o nome longo do mapa
       document.getElementById('titulo-categoria').innerText = nomesExibicao[categoriaAtual];
-
       document.getElementById('header-principal').style.borderBottomColor = cor;
       document.getElementById('barra-progresso').style.backgroundColor = cor;
 
-      try {
-          const response = await fetch(`/vagas/filtro?tipo=${categoriaAtual}`);
-          const vagas = await response.json();
-          renderizarVagas(vagas, cor);
-      } catch (erro) {
-          console.error("Erro:", erro);
+      if (categoriaAtual === "INFO") {
+          container.className = 'container modo-info';
+          renderizarInfo(container);
+      } else {
+          container.className = 'container modo-vagas';
+          try {
+              const response = await fetch(`/api/vagas/filtro?tipo=${categoriaAtual}`);
+              const vagas = await response.json();
+              renderizarVagas(vagas, cor, container);
+          } catch (erro) {
+              console.error("Erro ao buscar vagas:", erro);
+              container.innerHTML = `<h2 style="grid-column: 1/-1; text-align: center; margin-top: 20%;">Erro de conexão com o servidor</h2>`;
+          }
       }
 
-      indiceAtual++;
-      if (indiceAtual >= categorias.length) indiceAtual = 0;
       animarBarra();
   }
 
-  function renderizarVagas(listaVagas, corBorda) {
-      const container = document.getElementById('lista-vagas');
+  function normalizarCursos(dados) {
+      if (Array.isArray(dados.cursos)) return dados.cursos;
+      return [
+          { nome: dados.curso1, detalhe: dados.curso1Detalhe },
+          { nome: dados.curso2, detalhe: dados.curso2Detalhe },
+          { nome: dados.curso3, detalhe: dados.curso3Detalhe }
+      ].filter(c => c.nome || c.detalhe);
+  }
+
+  function normalizarProcessos(dados) {
+      if (Array.isArray(dados.processos)) return dados.processos;
+      return [{
+          empresa: dados.empresaNome,
+          data: dados.empresaData,
+          texto: Array.isArray(dados.processoVagas) ? dados.processoVagas : [dados.vaga1, dados.vaga2, dados.vaga3].filter(Boolean)
+      }].filter(p => p.empresa || p.data || (p.texto && p.texto.length));
+  }
+
+  function normalizarCronograma(dados) {
+      if (Array.isArray(dados.cronograma)) return dados.cronograma;
+      return [
+          { data: dados.data1, evento: dados.evento1 },
+          { data: dados.data2, evento: dados.evento2 },
+          { data: dados.data3, evento: dados.evento3 }
+      ].filter(c => c.data || c.evento);
+  }
+
+  async function renderizarInfo(container) {
+      let dados;
+      try {
+          const res = await fetch('/api/infos');
+          dados = await res.json();
+      } catch (e) {
+          console.error("Erro ao buscar infos", e);
+          return;
+      }
+
+      const cursos = normalizarCursos(dados);
+      const processos = normalizarProcessos(dados);
+      const cronograma = normalizarCronograma(dados);
+
+      const cursosHtml = cursos.length
+          ? cursos.map(c => `
+              <div class="info-item">
+                  <strong>${c.nome || ""}</strong>
+                  <small>${c.detalhe || ""}</small>
+              </div>
+          `).join('')
+          : `<div class="info-item"><strong>Sem cursos cadastrados</strong><small>Atualize no painel administrativo.</small></div>`;
+
+      const processosHtml = processos.length
+          ? processos.map(p => {
+              const linhas = (p.texto || []).map(v => `<div>${v}</div>`).join('');
+              return `
+                  <div class="processo-bloco">
+                      <strong class="d-block text-uppercase processo-empresa">
+                          ${p.empresa || ""}
+                      </strong>
+                      <br><span class="d-block text-muted processo-data" style="font-size: 18px;">
+                          ${p.data || ""}
+                      </span>
+                      <div class="processo-texto">
+                          ${linhas || "<div>Nenhum processo cadastrado</div>"}
+                      </div>
+                  </div>
+              `;
+          }).join('<hr style="border: 1px solid #000; opacity: 1; margin: 18px 0;">')
+          : `<div class="processo-bloco"><strong class="d-block text-dark">Nenhum processo cadastrado.</strong></div>`;
+
+      const coresCronograma = ['text-danger', 'text-primary', 'text-success'];
+      const cronogramaHtml = cronograma.length
+          ? cronograma.map((c, i) => `
+              <div class="mb-4">
+                  <span class="d-block ${coresCronograma[i % coresCronograma.length]} fw-bold" style="font-size: 22px;">
+                      📅 ${c.data || ""}
+                  </span>
+                  <strong class="d-block text-dark text-uppercase mt-1" style="font-size: 22px;">
+                      | ${c.evento || ""}
+                  </strong>
+                  ${i < cronograma.length - 1 ? '<hr>' : ''}
+              </div>
+          `).join('')
+          : `<div class="mb-4"><strong class="d-block text-dark">Nenhum evento cadastrado.</strong></div>`;
+
+      container.innerHTML = `
+      <div class="card-info">
+          <div class="info-header bg-cursos">
+              <i class="bi bi-mortarboard-fill"></i> Cursos & Qualificações
+          </div>
+          <div class="info-alert">
+              Interessado? Retire a senha CURSOS na recepção
+          </div>
+          <div class="info-body d-flex flex-column" style="height: 100%;">
+              <div class="flex-grow-1">
+                  ${cursosHtml}
+              </div>
+          </div>
+      </div>
+
+      <div class="card-info">
+          <div class="info-header bg-processos">
+              <i class="bi bi-briefcase-fill"></i> PROCESSOS NA AGÊNCIA
+          </div>
+          <div class="info-body">
+              ${processosHtml}
+          </div>
+      </div>
+
+      <div class="card-info">
+          <div class="info-header bg-cronograma">
+              <i class="bi bi-calendar-event-fill"></i> Cronograma de Eventos
+          </div>
+          <div class="info-body">
+              ${cronogramaHtml}
+          </div>
+      </div>
+      `;
+  }
+
+  function renderizarVagas(listaVagas, corBorda, container) {
       container.innerHTML = "";
 
-      if(listaVagas.length === 0) {
-          // Título condicional também na mensagem de "vazio"
-          const tituloVazio = nomesExibicao[categorias[indiceAtual > 0 ? indiceAtual - 1 : categorias.length - 1]];
-
+      if (!listaVagas || listaVagas.length === 0) {
           container.innerHTML = `<h2 style="grid-column: 1/-1; text-align: center; color: #777; margin-top: 20%; font-size: 2em;">
-              Nenhuma vaga disponível em: <br>${tituloVazio}
+              Nenhuma vaga disponível no momento.<br>Aguarde o próximo painel.
           </h2>`;
           return;
       }
@@ -178,13 +354,8 @@
           const ben = vaga.beneficios ? vaga.beneficios : "";
 
           let tagExp = "";
-          if(vaga.experiencia === "Sim") tagExp = `<span class="tag-exp com-exp">COM EXPERIÊNCIA</span>`;
-          if(vaga.experiencia === "Não") tagExp = `<span class="tag-exp sem-exp">SEM EXPERIÊNCIA</span>`;
-
-          let htmlDescricao = "";
-          if(vaga.descricao && vaga.descricao.trim() !== "") {
-              htmlDescricao = `<div class="descricao-extra">${vaga.descricao}</div>`;
-          }
+          if (vaga.experiencia === "Sim" || vaga.experiencia === true) tagExp = `<span class="tag-exp com-exp">COM EXPERIÊNCIA</span>`;
+          if (vaga.experiencia === "Não" || vaga.experiencia === false) tagExp = `<span class="tag-exp sem-exp">SEM EXPERIÊNCIA</span>`;
 
           card.innerHTML = `
               <div class="card-top">
@@ -196,8 +367,8 @@
                   <h2>${vaga.titulo}</h2>
                   <div class="salario">R$ ${vaga.salario}</div>
                   <div class="beneficios">${ben}</div>
-                  ${htmlDescricao}
               </div>
+              <div class="barra-tempo"></div>
           `;
           container.appendChild(card);
       });
@@ -205,8 +376,13 @@
 
   function animarBarra() {
       const barra = document.getElementById('barra-progresso');
-      barra.style.transition = 'none'; barra.style.width = '0%';
-      setTimeout(() => { barra.style.transition = `width ${TEMPO_POR_TELA}ms linear`; barra.style.width = '100%'; }, 50);
+      barra.style.transition = 'none';
+      barra.style.width = '0%';
+
+      setTimeout(() => {
+          barra.style.transition = `width ${TEMPO_POR_TELA}ms linear`;
+          barra.style.width = '100%';
+      }, 50);
   }
 
   setInterval(() => {
@@ -214,8 +390,40 @@
       document.getElementById('relogio').innerText = agora.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
   }, 1000);
 
-  carregarCiclo();
-  setInterval(carregarCiclo, TEMPO_POR_TELA);
+  function avancarCiclo() {
+      indiceAtual = (indiceAtual + 1) % categorias.length;
+      renderizarCategoria();
+  }
+
+  function iniciarTimer() {
+      clearInterval(cicloTimer);
+      cicloTimer = setInterval(avancarCiclo, TEMPO_POR_TELA);
+  }
+
+  renderizarCategoria();
+  let cicloTimer = setInterval(avancarCiclo, TEMPO_POR_TELA);
+
+  function irParaIndice(novoIndice) {
+      indiceAtual = (novoIndice + categorias.length) % categorias.length;
+      renderizarCategoria();
+      iniciarTimer();
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => {
+      irParaIndice(indiceAtual - 1);
+  });
+  document.getElementById('btn-next').addEventListener('click', () => {
+      irParaIndice(indiceAtual + 1);
+  });
+
+  let hideButtonsTimer;
+  function mostrarBotoesTemporario() {
+      const nav = document.getElementById('nav-buttons');
+      nav.classList.add('show');
+      clearTimeout(hideButtonsTimer);
+      hideButtonsTimer = setTimeout(() => nav.classList.remove('show'), 1200);
+  }
+  window.addEventListener('mousemove', mostrarBotoesTemporario);
 </script>
 </body>
 </html>
