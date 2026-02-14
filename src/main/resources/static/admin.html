@@ -16,6 +16,64 @@
         .info-row .btn { flex: 0 0 auto; }
         .processo-item { border: 1px solid #eee; border-radius: 6px; padding: 8px; margin-bottom: 8px; }
         .processo-item .form-control { margin-bottom: 6px; }
+        .theme-toggle { min-width: 170px; }
+
+        body.dark-mode {
+            background-color: #111827 !important;
+            color: #e5e7eb;
+        }
+        body.dark-mode .form-vaga,
+        body.dark-mode .card {
+            background-color: #1f2937 !important;
+            color: #e5e7eb;
+            border-color: #334155 !important;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+        }
+        body.dark-mode .campo-label,
+        body.dark-mode h2,
+        body.dark-mode h5,
+        body.dark-mode .form-check-label {
+            color: #e5e7eb !important;
+        }
+        body.dark-mode .nav-pills .nav-link {
+            background-color: #0f172a;
+            color: #cbd5e1;
+            border-color: #334155;
+        }
+        body.dark-mode .nav-pills .nav-link.active {
+            background-color: #2563eb;
+            color: #ffffff;
+        }
+        body.dark-mode .table {
+            color: #e5e7eb;
+        }
+        body.dark-mode .table thead.table-dark th {
+            background-color: #0f172a;
+            border-color: #1e293b;
+        }
+        body.dark-mode .table tbody td {
+            border-color: #334155;
+        }
+        body.dark-mode .form-control,
+        body.dark-mode .form-check-input {
+            background-color: #111827;
+            color: #e5e7eb;
+            border-color: #475569;
+        }
+        body.dark-mode .form-control:focus {
+            background-color: #111827;
+            color: #e5e7eb;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 0.2rem rgba(96,165,250,0.25);
+        }
+        body.dark-mode .btn-outline-dark {
+            color: #e5e7eb;
+            border-color: #64748b;
+        }
+        body.dark-mode .btn-outline-dark:hover {
+            background-color: #334155;
+            border-color: #64748b;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -24,7 +82,12 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold"><i class="bi bi-gear-fill"></i> Painel Administrativo</h2>
-        <a href="/tv.html" target="_blank" class="btn btn-outline-dark"><i class="bi bi-tv"></i> Ver TV</a>
+        <div class="d-flex gap-2">
+            <button type="button" id="btn-theme" class="btn btn-outline-dark theme-toggle">
+                <i class="bi bi-moon-stars"></i> Modo escuro
+            </button>
+            <a href="/tv.html" target="_blank" class="btn btn-outline-dark"><i class="bi bi-tv"></i> Ver TV</a>
+        </div>
     </div>
 
     <ul class="nav nav-pills mb-4" id="pills-tab">
@@ -42,7 +105,7 @@
                 <div class="form-vaga">
                     <h5 class="mb-3 text-primary"><i class="bi bi-plus-circle"></i> Nova Vaga</h5>
                     <form id="formVaga">
-                        <label class="campo-label" for="codigo">Codigo da vaga</label>
+                        <label class="campo-label" for="codigo">Código da vaga</label>
                         <input type="text" id="codigo" class="form-control mb-2">
 
                         <label class="campo-label" for="titulo">Titulo da vaga</label>
@@ -54,10 +117,10 @@
                         <label class="campo-label" for="local">Cidade / local</label>
                         <input type="text" id="local" class="form-control mb-2">
 
-                        <label class="campo-label" for="beneficios">Beneficios</label>
+                        <label class="campo-label" for="beneficios">Benefícios</label>
                         <textarea id="beneficios" class="form-control mb-2" rows="3"></textarea>
 
-                        <label class="campo-label" for="atribuicoes">Atribuicoes da vaga</label>
+                        <label class="campo-label" for="atribuicoes">Atribuições da vaga</label>
                         <textarea id="atribuicoes" class="form-control mb-2" rows="4"></textarea>
 
                         <label class="campo-label" for="validade">Validade da vaga</label>
@@ -72,7 +135,7 @@
 
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="experiencia">
-                            <label class="form-check-label">Exige Experiencia?</label>
+                            <label class="form-check-label">Exige Experiência?</label>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">CADASTRAR VAGA</button>
@@ -86,11 +149,11 @@
                     <table class="table">
                         <thead class="table-dark">
                         <tr>
-                            <th>Codigo</th>
-                            <th>Titulo</th>
+                            <th>Código</th>
+                            <th>Título</th>
                             <th>Tipo</th>
                             <th>Validade</th>
-                            <th>Acao</th>
+                            <th>Ação</th>
                         </tr>
                         </thead>
                         <tbody id="tabela-vagas"></tbody>
@@ -134,6 +197,22 @@
 <script>
     const API_VAGAS = "/api/vagas";
     const API_INFOS = "/api/infos";
+    const THEME_KEY = "admin_theme";
+
+    function aplicarTema(modoEscuro) {
+        document.body.classList.toggle('dark-mode', modoEscuro);
+        const btn = document.getElementById('btn-theme');
+        if (!btn) return;
+        btn.innerHTML = modoEscuro
+            ? '<i class="bi bi-sun"></i> Modo claro'
+            : '<i class="bi bi-moon-stars"></i> Modo escuro';
+    }
+
+    function alternarTema() {
+        const ativo = !document.body.classList.contains('dark-mode');
+        localStorage.setItem(THEME_KEY, ativo ? 'dark' : 'light');
+        aplicarTema(ativo);
+    }
 
     function mostrarAba(aba) {
         document.getElementById('secao-vagas').style.display = aba === 'vagas' ? 'block' : 'none';
@@ -335,6 +414,8 @@
     }
 
     // Inicio
+    aplicarTema(localStorage.getItem(THEME_KEY) === 'dark');
+    document.getElementById('btn-theme').addEventListener('click', alternarTema);
     carregarVagas();
     carregarInfos();
 </script>
