@@ -46,6 +46,8 @@
                         <input type="text" id="salario" class="form-control mb-2" placeholder="Salário (Ex: 1.800,00)">
                         <input type="text" id="local" class="form-control mb-2" placeholder="Cidade/Local">
                         <textarea id="beneficios" class="form-control mb-2" rows="3" placeholder="Benefícios"></textarea>
+                        <textarea id="atribuicoes" class="form-control mb-2" rows="4" placeholder="Atribuições da vaga"></textarea>
+                        <input type="date" id="validade" class="form-control mb-2" placeholder="Validade da vaga">
 
                         <select id="tipo" class="form-control mb-3">
                             <option value="CONVENCIONAL">Convencional</option>
@@ -72,6 +74,7 @@
                             <th>Código</th>
                             <th>Título</th>
                             <th>Tipo</th>
+                            <th>Validade</th>
                             <th>Ação</th>
                         </tr>
                         </thead>
@@ -138,6 +141,7 @@
                             <td>${v.codigo || "-"}</td>
                             <td><strong>${v.titulo}</strong></td>
                             <td>${v.categoria}</td>
+                            <td>${v.validade || "-"}</td>
                             <td><button onclick="deletarVaga(${v.id})" class="btn btn-danger btn-sm">Excluir</button></td>
                         </tr>`;
                 });
@@ -152,6 +156,8 @@
             salario: document.getElementById('salario').value,
             local: document.getElementById('local').value,
             beneficios: document.getElementById('beneficios').value,
+            atribuicoes: document.getElementById('atribuicoes').value,
+            validade: document.getElementById('validade').value,
             categoria: document.getElementById('tipo').value,
             experiencia: document.getElementById('experiencia').checked ? "Sim" : "Não"
         };

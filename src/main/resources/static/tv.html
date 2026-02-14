@@ -11,6 +11,7 @@
     :root {
         --app-height: 100dvh;
         --header-height: 7vh;
+        --footer-height: 90px;
         --progress-height: 4px;
     }
 
@@ -58,9 +59,57 @@
     .container {
         padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));
         box-sizing: border-box;
-        height: calc(var(--app-height) - var(--header-height) - var(--progress-height));
+        height: calc(var(--app-height) - var(--header-height) - var(--footer-height) - var(--progress-height));
         display: grid;
         gap: 10px;
+    }
+
+    .rodape {
+        height: var(--footer-height);
+        background: #ffffff;
+        border-top: 1px solid #d6dee8;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px calc(14px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+        box-sizing: border-box;
+    }
+    .rodape-texto {
+        min-width: 0;
+    }
+    .rodape-titulo {
+        margin: 0;
+        font-size: 1.12em;
+        color: #1e3550;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .rodape-sub {
+        margin-top: 4px;
+        font-size: 0.9em;
+        color: #4f6073;
+        font-weight: 600;
+    }
+    .rodape-link {
+        margin-top: 3px;
+        font-size: 0.82em;
+        color: #0d6efd;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 64vw;
+    }
+    .rodape-qr {
+        width: 70px;
+        height: 70px;
+        background: #f5f7fa;
+        border: 1px solid #d4dce7;
+        border-radius: 8px;
+        object-fit: contain;
+        flex-shrink: 0;
     }
 
     /* == ESTILO DAS VAGAS (Grade 6x5) == */
@@ -166,7 +215,10 @@
     .barra-tempo { height: var(--progress-height); background-color: #007bff; width: 0%; position: absolute; bottom: 0; left: 0; transition: width linear; }
 
     @media (orientation: portrait) {
-        :root { --header-height: 8vh; }
+        :root {
+            --header-height: 8vh;
+            --footer-height: 122px;
+        }
         .modo-vagas {
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(10, 1fr);
@@ -177,6 +229,21 @@
         }
         h1 { font-size: 1.15em; }
         #relogio { font-size: 1.1em; }
+        .rodape {
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+        }
+        .rodape-qr {
+            width: 58px;
+            height: 58px;
+            position: absolute;
+            right: calc(14px + env(safe-area-inset-right));
+            bottom: calc(12px + env(safe-area-inset-bottom));
+        }
+        .rodape-link {
+            max-width: 100%;
+        }
     }
   </style>
 </head>
@@ -191,6 +258,14 @@
 </header>
 
 <div class="container" id="lista-vagas"></div>
+<footer class="rodape">
+  <div class="rodape-texto">
+    <p class="rodape-titulo">Mural Interativo</p>
+    <div class="rodape-sub">Escaneie e veja detalhes da vaga no celular</div>
+    <div class="rodape-link" id="link-mural">Gerando acesso seguro...</div>
+  </div>
+  <img class="rodape-qr" id="qr-mural" alt="QR code do Mural Interativo">
+</footer>
 <div class="barra-tempo" id="barra-progresso"></div>
 <div class="nav-buttons" id="nav-buttons">
   <button class="nav-btn" id="btn-prev" aria-label="Anterior">‹</button>
@@ -199,6 +274,7 @@
 
 <script>
   const TEMPO_POR_TELA = 30000;
+  const TEMPO_ATUALIZAR_QR = 60000;
   const categorias = ["CONVENCIONAL", "SUPERIOR", "PCD", "INFO"];
 
   const nomesExibicao = {
@@ -216,6 +292,7 @@
   };
 
   let indiceAtual = 0;
+  let expiraQrEm = 0;
 
   async function renderizarCategoria() {
       const categoriaAtual = categorias[indiceAtual];
@@ -431,6 +508,27 @@
       cicloTimer = setInterval(avancarCiclo, TEMPO_POR_TELA);
   }
 
+  function atualizarStatusRodape() {
+      const link = document.getElementById('link-mural');
+      if (!expiraQrEm) return;
+      const restante = Math.max(0, expiraQrEm - Math.floor(Date.now() / 1000));
+      const min = Math.floor(restante / 60);
+      const sec = restante % 60;
+      link.innerText = `Acesso valido por ${min}m ${sec}s`;
+  }
+
+  async function atualizarQrRodape() {
+      try {
+          const res = await fetch('/api/mural/token');
+          const dados = await res.json();
+          expiraQrEm = dados.expiresAtEpochSeconds || 0;
+          document.getElementById('qr-mural').src = `${dados.qrUrl}&v=${Date.now()}`;
+          document.getElementById('link-mural').innerText = 'Escaneie para abrir o mural no celular';
+      } catch (e) {
+          document.getElementById('link-mural').innerText = 'Falha ao gerar QR. Verifique a conexao.';
+      }
+  }
+
   function atualizarAlturaApp() {
       const altura = window.visualViewport ? window.visualViewport.height : window.innerHeight;
       document.documentElement.style.setProperty('--app-height', `${Math.round(altura)}px`);
@@ -479,6 +577,9 @@
   }
   document.addEventListener('pointerdown', tentarTelaCheia, { once: true });
   atualizarAlturaApp();
+  atualizarQrRodape();
+  setInterval(atualizarQrRodape, TEMPO_ATUALIZAR_QR);
+  setInterval(atualizarStatusRodape, 1000);
 </script>
 </body>
 </html>
