@@ -45,7 +45,7 @@ public class InfoController {
         dto.cronograma = safeList(dto.cronograma);
         dto.processoVagas = safeList(dto.processoVagas);
 
-        if ((dto.processos.isEmpty() && hasText(dto.empresaNome, dto.empresaData)) || !dto.processoVagas.isEmpty()) {
+        if (dto.processos.isEmpty() && (hasText(dto.empresaNome, dto.empresaData) || !dto.processoVagas.isEmpty())) {
             dto.processos.add(new ProcessoItem(dto.empresaNome, dto.empresaData, dto.processoVagas));
         }
 
