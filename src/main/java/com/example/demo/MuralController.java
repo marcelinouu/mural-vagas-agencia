@@ -40,21 +40,32 @@ public class MuralController {
     @GetMapping("/token")
     public TokenResponse issueToken(HttpServletRequest request) {
         String ip = resolveClientIp(request);
-        MuralTokenService.IssuedToken issued = tokenService.issueToken(ip);
+        MuralTokenService.IssuedToken issued = tokenService.issueQrToken(ip);
         String muralUrl = buildMuralUrl(issued.token());
         String qrUrl = "/api/mural/qr?t=" + urlEncode(issued.token());
         return new TokenResponse(issued.token(), issued.expiresAtEpochSeconds(), muralUrl, qrUrl);
     }
 
+    @GetMapping("/session")
+    public SessionResponse issueSession(@RequestParam("t") String qrToken, HttpServletRequest request) {
+        String ip = resolveClientIp(request);
+        MuralTokenService.ValidationResult qrValidation = tokenService.validate(qrToken, ip, "QR");
+        if (!qrValidation.valid()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "QR invalido, expirado ou fora da rede.");
+        }
+        MuralTokenService.IssuedToken session = tokenService.issueSessionToken(ip);
+        return new SessionResponse(session.token(), session.expiresAtEpochSeconds());
+    }
+
     @GetMapping("/validate")
     public ValidationResponse validate(@RequestParam("t") String token, HttpServletRequest request) {
-        MuralTokenService.ValidationResult result = tokenService.validate(token, resolveClientIp(request));
-        return new ValidationResponse(result.valid(), result.expired(), result.wrongNetwork(), result.expiresAtEpochSeconds());
+        MuralTokenService.ValidationResult result = tokenService.validate(token, resolveClientIp(request), "SESSION");
+        return new ValidationResponse(result.valid(), result.expired(), result.wrongNetwork(), result.wrongType(), result.expiresAtEpochSeconds());
     }
 
     @GetMapping("/data")
     public MuralDataResponse data(@RequestParam("t") String token, HttpServletRequest request) {
-        MuralTokenService.ValidationResult result = tokenService.validate(token, resolveClientIp(request));
+        MuralTokenService.ValidationResult result = tokenService.validate(token, resolveClientIp(request), "SESSION");
         if (!result.valid()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso do mural invalido para esta rede.");
         }
@@ -104,7 +115,7 @@ public class MuralController {
     }
 
     public record TokenResponse(String token, long expiresAtEpochSeconds, String muralUrl, String qrUrl) {}
-    public record ValidationResponse(boolean valid, boolean expired, boolean wrongNetwork, long expiresAtEpochSeconds) {}
+    public record SessionResponse(String token, long expiresAtEpochSeconds) {}
+    public record ValidationResponse(boolean valid, boolean expired, boolean wrongNetwork, boolean wrongType, long expiresAtEpochSeconds) {}
     public record MuralDataResponse(List<Vaga> vagas, InfoController.InfoDTO infos, long expiresAtEpochSeconds) {}
 }
-

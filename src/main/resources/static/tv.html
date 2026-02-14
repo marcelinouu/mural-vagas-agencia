@@ -71,13 +71,14 @@
         position: relative;
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
         gap: 12px;
         padding: 8px calc(14px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
         box-sizing: border-box;
     }
     .rodape-texto {
         min-width: 0;
+        text-align: center;
     }
     .rodape-titulo {
         margin: 0;
@@ -90,17 +91,8 @@
     .rodape-sub {
         margin-top: 4px;
         font-size: 0.9em;
-        color: #4f6073;
+        color: #0078ff;
         font-weight: 600;
-    }
-    .rodape-link {
-        margin-top: 3px;
-        font-size: 0.82em;
-        color: #0d6efd;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 64vw;
     }
     .rodape-qr {
         width: 70px;
@@ -231,18 +223,13 @@
         #relogio { font-size: 1.1em; }
         .rodape {
             flex-direction: column;
-            align-items: flex-start;
+            align-items: center;
             justify-content: center;
         }
         .rodape-qr {
             width: 58px;
             height: 58px;
-            position: absolute;
-            right: calc(14px + env(safe-area-inset-right));
-            bottom: calc(12px + env(safe-area-inset-bottom));
-        }
-        .rodape-link {
-            max-width: 100%;
+            position: static;
         }
     }
   </style>
@@ -260,9 +247,8 @@
 <div class="container" id="lista-vagas"></div>
 <footer class="rodape">
   <div class="rodape-texto">
-    <p class="rodape-titulo">Mural Interativo</p>
-    <div class="rodape-sub">Escaneie e veja detalhes da vaga no celular</div>
-    <div class="rodape-link" id="link-mural">Gerando acesso seguro...</div>
+    <p class="rodape-titulo">ACESSE JÁ O NOSSO MURAL INTERATIVO!</p>
+    <div class="rodape-sub">Escaneie o Qr Code pelo seu celular e veja detalhes das vagas</div>
   </div>
   <img class="rodape-qr" id="qr-mural" alt="QR code do Mural Interativo">
 </footer>
@@ -292,7 +278,6 @@
   };
 
   let indiceAtual = 0;
-  let expiraQrEm = 0;
 
   async function renderizarCategoria() {
       const categoriaAtual = categorias[indiceAtual];
@@ -508,24 +493,13 @@
       cicloTimer = setInterval(avancarCiclo, TEMPO_POR_TELA);
   }
 
-  function atualizarStatusRodape() {
-      const link = document.getElementById('link-mural');
-      if (!expiraQrEm) return;
-      const restante = Math.max(0, expiraQrEm - Math.floor(Date.now() / 1000));
-      const min = Math.floor(restante / 60);
-      const sec = restante % 60;
-      link.innerText = `Acesso valido por ${min}m ${sec}s`;
-  }
-
   async function atualizarQrRodape() {
       try {
           const res = await fetch('/api/mural/token');
           const dados = await res.json();
-          expiraQrEm = dados.expiresAtEpochSeconds || 0;
           document.getElementById('qr-mural').src = `${dados.qrUrl}&v=${Date.now()}`;
-          document.getElementById('link-mural').innerText = 'Escaneie para abrir o mural no celular';
       } catch (e) {
-          document.getElementById('link-mural').innerText = 'Falha ao gerar QR. Verifique a conexao.';
+          console.error('Falha ao atualizar QR do mural:', e);
       }
   }
 
@@ -579,7 +553,6 @@
   atualizarAlturaApp();
   atualizarQrRodape();
   setInterval(atualizarQrRodape, TEMPO_ATUALIZAR_QR);
-  setInterval(atualizarStatusRodape, 1000);
 </script>
 </body>
 </html>

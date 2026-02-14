@@ -263,8 +263,14 @@
     { key: "PCD", label: "PCD" },
     { key: "INFO", label: "Info" }
   ];
+  const coresCategoria = {
+    CONVENCIONAL: "#0056b3",
+    SUPERIOR: "#d35400",
+    PCD: "#16a085",
+    INFO: "#6f42c1"
+  };
 
-  const token = new URLSearchParams(window.location.search).get("t");
+  const qrToken = new URLSearchParams(window.location.search).get("t");
   const tabsEl = document.getElementById("tabs");
   const contentEl = document.getElementById("content");
   const statusEl = document.getElementById("status");
@@ -274,6 +280,20 @@
   let dataAtual = null;
   let abaAtual = "CONVENCIONAL";
   let expiraEm = 0;
+  let sessionToken = null;
+
+  function corDaCategoria(cat) {
+    return coresCategoria[cat] || "#0a66d1";
+  }
+
+  function hexParaRgba(hex, alpha) {
+    const h = (hex || "").replace("#", "");
+    if (h.length !== 6) return `rgba(10, 102, 209, ${alpha})`;
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
 
   function formatarDataHora(epochSeconds) {
     if (!epochSeconds) return "-";
@@ -295,6 +315,11 @@
       const btn = document.createElement("button");
       btn.className = "tab-btn" + (cat.key === abaAtual ? " active" : "");
       btn.textContent = cat.label;
+      if (cat.key === abaAtual) {
+        const cor = corDaCategoria(cat.key);
+        btn.style.backgroundColor = cor;
+        btn.style.borderColor = cor;
+      }
       btn.addEventListener("click", () => {
         abaAtual = cat.key;
         renderTabs();
@@ -351,21 +376,24 @@
 
   function renderVagas(categoria) {
     const vagas = (dataAtual.vagas || []).filter(v => (v.categoria || "").toUpperCase() === categoria);
+    const corCategoria = corDaCategoria(categoria);
+    const badgeBg = hexParaRgba(corCategoria, 0.16);
+    const badgeInk = corCategoria;
     if (!vagas.length) {
       contentEl.innerHTML = "<div class='empty'>Nenhuma vaga nesta categoria agora.</div>";
       return;
     }
 
     const html = vagas.map(v => `
-      <article class="vaga-card" data-id="${v.id}">
+      <article class="vaga-card" data-id="${v.id}" style="border-left-color:${corCategoria}">
         <div class="vaga-head">
-          <span class="badge">${v.codigo || "-"}</span>
+          <span class="badge" style="background:${badgeBg};color:${badgeInk}">${v.codigo || "-"}</span>
           <span class="vaga-local">${v.local || ""}</span>
         </div>
         <h3 class="vaga-title">${v.titulo || "-"}</h3>
         <div class="vaga-meta">
           <span class="vaga-salario">R$ ${v.salario || "-"}</span>
-          <span class="vaga-open">Abrir detalhes</span>
+          <span class="vaga-open" style="color:${corCategoria}">Abrir detalhes</span>
         </div>
       </article>
     `).join("");
@@ -388,7 +416,7 @@
   }
 
   async function carregarDados() {
-    const res = await fetch(`/api/mural/data?t=${encodeURIComponent(token)}`);
+    const res = await fetch(`/api/mural/data?t=${encodeURIComponent(sessionToken)}`);
     if (!res.ok) throw new Error("Acesso negado");
     dataAtual = await res.json();
     expiraEm = dataAtual.expiresAtEpochSeconds || 0;
@@ -397,19 +425,20 @@
     statusSessao();
   }
 
-  async function validarAcesso() {
-    if (!token) {
+  async function iniciarSessao() {
+    if (!qrToken) {
       throw new Error("Token ausente no link");
     }
-    const res = await fetch(`/api/mural/validate?t=${encodeURIComponent(token)}`);
-    if (!res.ok) throw new Error("Falha ao validar token");
-    const v = await res.json();
-    if (!v.valid) {
-      if (v.wrongNetwork) throw new Error("Este QR code so funciona dentro da agencia.");
-      if (v.expired) throw new Error("QR code expirado. Escaneie novamente na TV.");
-      throw new Error("Acesso invalido.");
+    const res = await fetch(`/api/mural/session?t=${encodeURIComponent(qrToken)}`);
+    if (!res.ok) throw new Error("QR code invalido. Escaneie novamente na TV.");
+    const s = await res.json();
+    if (!s.token) {
+      throw new Error("Falha ao iniciar sessao do mural.");
     }
-    expiraEm = v.expiresAtEpochSeconds || 0;
+    sessionToken = s.token;
+    expiraEm = s.expiresAtEpochSeconds || 0;
+    const novaUrl = `${window.location.pathname}?t=${encodeURIComponent(sessionToken)}`;
+    window.history.replaceState({}, "", novaUrl);
   }
 
   function renderErro(msg) {
@@ -424,7 +453,7 @@
 
   (async () => {
     try {
-      await validarAcesso();
+      await iniciarSessao();
       await carregarDados();
       setInterval(statusSessao, 1000);
       setInterval(async () => {

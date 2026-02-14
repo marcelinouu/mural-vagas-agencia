@@ -18,30 +18,41 @@ public class MuralTokenService {
     private final Base64.Encoder b64UrlEncoder = Base64.getUrlEncoder().withoutPadding();
     private final Base64.Decoder b64UrlDecoder = Base64.getUrlDecoder();
     private final byte[] secretKey;
-    private final long validitySeconds;
+    private final long qrValiditySeconds;
+    private final long sessionValiditySeconds;
 
     public MuralTokenService(
             @Value("${mural.token.secret:}") String configuredSecret,
-            @Value("${mural.token.validity-minutes:20}") long validityMinutes
+            @Value("${mural.token.qr-validity-minutes:120}") long qrValidityMinutes,
+            @Value("${mural.token.session-validity-minutes:15}") long sessionValidityMinutes
     ) {
         String finalSecret = (configuredSecret == null || configuredSecret.isBlank())
                 ? Long.toHexString(RANDOM.nextLong()) + Long.toHexString(System.nanoTime())
                 : configuredSecret;
         this.secretKey = finalSecret.getBytes(StandardCharsets.UTF_8);
-        this.validitySeconds = Math.max(60, validityMinutes * 60);
+        this.qrValiditySeconds = Math.max(60, qrValidityMinutes * 60);
+        this.sessionValiditySeconds = Math.max(60, sessionValidityMinutes * 60);
     }
 
-    public IssuedToken issueToken(String remoteIp) {
-        long exp = Instant.now().getEpochSecond() + validitySeconds;
+    public IssuedToken issueQrToken(String remoteIp) {
+        return issueToken(remoteIp, "QR", qrValiditySeconds);
+    }
+
+    public IssuedToken issueSessionToken(String remoteIp) {
+        return issueToken(remoteIp, "SESSION", sessionValiditySeconds);
+    }
+
+    private IssuedToken issueToken(String remoteIp, String tokenType, long durationSeconds) {
+        long exp = Instant.now().getEpochSecond() + durationSeconds;
         String ipScope = buildIpScope(remoteIp);
         String nonce = Long.toHexString(RANDOM.nextLong());
-        String payload = ipScope + "|" + exp + "|" + nonce;
+        String payload = tokenType + "|" + ipScope + "|" + exp + "|" + nonce;
         String payloadEncoded = b64UrlEncoder.encodeToString(payload.getBytes(StandardCharsets.UTF_8));
         String signatureEncoded = b64UrlEncoder.encodeToString(sign(payload));
         return new IssuedToken(payloadEncoded + "." + signatureEncoded, exp);
     }
 
-    public ValidationResult validate(String token, String remoteIp) {
+    public ValidationResult validate(String token, String remoteIp, String expectedType) {
         if (token == null || token.isBlank()) {
             return ValidationResult.invalid();
         }
@@ -71,13 +82,20 @@ public class MuralTokenService {
         }
 
         String[] payloadParts = payload.split("\\|");
-        if (payloadParts.length < 3) {
+        if (payloadParts.length < 4) {
             return ValidationResult.invalid();
+        }
+
+        String tokenType = payloadParts[0];
+        String tokenScope = payloadParts[1];
+
+        if (!tokenType.equals(expectedType)) {
+            return ValidationResult.wrongTypeResult();
         }
 
         long exp;
         try {
-            exp = Long.parseLong(payloadParts[1]);
+            exp = Long.parseLong(payloadParts[2]);
         } catch (NumberFormatException e) {
             return ValidationResult.invalid();
         }
@@ -88,7 +106,6 @@ public class MuralTokenService {
         }
 
         String expectedScope = buildIpScope(remoteIp);
-        String tokenScope = payloadParts[0];
         if (!tokenScope.equals(expectedScope)) {
             return ValidationResult.wrongNetworkResult();
         }
@@ -129,10 +146,11 @@ public class MuralTokenService {
 
     public record IssuedToken(String token, long expiresAtEpochSeconds) {}
 
-    public record ValidationResult(boolean valid, boolean expired, boolean wrongNetwork, long expiresAtEpochSeconds) {
-        static ValidationResult valid(long exp) { return new ValidationResult(true, false, false, exp); }
-        static ValidationResult expiredResult() { return new ValidationResult(false, true, false, 0); }
-        static ValidationResult wrongNetworkResult() { return new ValidationResult(false, false, true, 0); }
-        static ValidationResult invalid() { return new ValidationResult(false, false, false, 0); }
+    public record ValidationResult(boolean valid, boolean expired, boolean wrongNetwork, boolean wrongType, long expiresAtEpochSeconds) {
+        static ValidationResult valid(long exp) { return new ValidationResult(true, false, false, false, exp); }
+        static ValidationResult expiredResult() { return new ValidationResult(false, true, false, false, 0); }
+        static ValidationResult wrongNetworkResult() { return new ValidationResult(false, false, true, false, 0); }
+        static ValidationResult wrongTypeResult() { return new ValidationResult(false, false, false, true, 0); }
+        static ValidationResult invalid() { return new ValidationResult(false, false, false, false, 0); }
     }
 }
