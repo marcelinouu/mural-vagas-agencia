@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Painel Administrativo - Agência</title>
+    <title>Painel Administrativo - Agencia</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
@@ -10,11 +10,70 @@
         .nav-pills .nav-link.active { background-color: #0d6efd; }
         .nav-pills .nav-link { color: #333; font-weight: bold; font-size: 1.2rem; margin-right: 10px; border: 1px solid #ddd; }
         .form-vaga { background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .campo-label { display: block; margin-bottom: 4px; font-size: 0.85rem; font-weight: 700; color: #364457; }
         .info-row { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
         .info-row .form-control { flex: 1; }
         .info-row .btn { flex: 0 0 auto; }
         .processo-item { border: 1px solid #eee; border-radius: 6px; padding: 8px; margin-bottom: 8px; }
         .processo-item .form-control { margin-bottom: 6px; }
+        .theme-toggle { min-width: 170px; }
+
+        body.dark-mode {
+            background-color: #111827 !important;
+            color: #e5e7eb;
+        }
+        body.dark-mode .form-vaga,
+        body.dark-mode .card {
+            background-color: #1f2937 !important;
+            color: #e5e7eb;
+            border-color: #334155 !important;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+        }
+        body.dark-mode .campo-label,
+        body.dark-mode h2,
+        body.dark-mode h5,
+        body.dark-mode .form-check-label {
+            color: #e5e7eb !important;
+        }
+        body.dark-mode .nav-pills .nav-link {
+            background-color: #0f172a;
+            color: #cbd5e1;
+            border-color: #334155;
+        }
+        body.dark-mode .nav-pills .nav-link.active {
+            background-color: #2563eb;
+            color: #ffffff;
+        }
+        body.dark-mode .table {
+            color: #e5e7eb;
+        }
+        body.dark-mode .table thead.table-dark th {
+            background-color: #0f172a;
+            border-color: #1e293b;
+        }
+        body.dark-mode .table tbody td {
+            border-color: #334155;
+        }
+        body.dark-mode .form-control,
+        body.dark-mode .form-check-input {
+            background-color: #111827;
+            color: #e5e7eb;
+            border-color: #475569;
+        }
+        body.dark-mode .form-control:focus {
+            background-color: #111827;
+            color: #e5e7eb;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 0.2rem rgba(96,165,250,0.25);
+        }
+        body.dark-mode .btn-outline-dark {
+            color: #e5e7eb;
+            border-color: #64748b;
+        }
+        body.dark-mode .btn-outline-dark:hover {
+            background-color: #334155;
+            border-color: #64748b;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -23,7 +82,12 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold"><i class="bi bi-gear-fill"></i> Painel Administrativo</h2>
-        <a href="/tv.html" target="_blank" class="btn btn-outline-dark"><i class="bi bi-tv"></i> Ver TV</a>
+        <div class="d-flex gap-2">
+            <button type="button" id="btn-theme" class="btn btn-outline-dark theme-toggle">
+                <i class="bi bi-moon-stars"></i> Modo escuro
+            </button>
+            <a href="/tv.html" target="_blank" class="btn btn-outline-dark"><i class="bi bi-tv"></i> Ver TV</a>
+        </div>
     </div>
 
     <ul class="nav nav-pills mb-4" id="pills-tab">
@@ -41,12 +105,28 @@
                 <div class="form-vaga">
                     <h5 class="mb-3 text-primary"><i class="bi bi-plus-circle"></i> Nova Vaga</h5>
                     <form id="formVaga">
-                        <input type="text" id="codigo" class="form-control mb-2" placeholder="Código da Vaga (Ex: 123)">
-                        <input type="text" id="titulo" class="form-control mb-2" placeholder="Título da Vaga" required>
-                        <input type="text" id="salario" class="form-control mb-2" placeholder="Salário (Ex: 1.800,00)">
-                        <input type="text" id="local" class="form-control mb-2" placeholder="Cidade/Local">
-                        <textarea id="beneficios" class="form-control mb-2" rows="3" placeholder="Benefícios"></textarea>
+                        <label class="campo-label" for="codigo">Código da vaga</label>
+                        <input type="text" id="codigo" class="form-control mb-2">
 
+                        <label class="campo-label" for="titulo">Titulo da vaga</label>
+                        <input type="text" id="titulo" class="form-control mb-2" required>
+
+                        <label class="campo-label" for="salario">Salario</label>
+                        <input type="text" id="salario" class="form-control mb-2">
+
+                        <label class="campo-label" for="local">Cidade / local</label>
+                        <input type="text" id="local" class="form-control mb-2">
+
+                        <label class="campo-label" for="beneficios">Benefícios</label>
+                        <textarea id="beneficios" class="form-control mb-2" rows="3"></textarea>
+
+                        <label class="campo-label" for="atribuicoes">Atribuições da vaga</label>
+                        <textarea id="atribuicoes" class="form-control mb-2" rows="4"></textarea>
+
+                        <label class="campo-label" for="validade">Validade da vaga</label>
+                        <input type="date" id="validade" class="form-control mb-2">
+
+                        <label class="campo-label" for="tipo">Tipo da vaga</label>
                         <select id="tipo" class="form-control mb-3">
                             <option value="CONVENCIONAL">Convencional</option>
                             <option value="SUPERIOR">Ensino Superior</option>
@@ -72,6 +152,7 @@
                             <th>Código</th>
                             <th>Título</th>
                             <th>Tipo</th>
+                            <th>Validade</th>
                             <th>Ação</th>
                         </tr>
                         </thead>
@@ -87,27 +168,27 @@
             <div class="row">
                 <div class="col-md-4">
                     <div class="card p-3 border-primary h-100">
-                        <h5 class="text-primary fw-bold">🎓 Cursos</h5>
+                        <h5 class="text-primary fw-bold">Cursos</h5>
                         <div id="cursos-list"></div>
                         <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" onclick="addCurso()">Adicionar curso</button>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card p-3 border-success h-100">
-                        <h5 class="text-success fw-bold">💼 Processo Seletivo</h5>
+                        <h5 class="text-success fw-bold">Processo Seletivo</h5>
                         <div id="processos-list"></div>
                         <button type="button" class="btn btn-outline-success btn-sm w-100 mt-2" onclick="addProcesso()">Adicionar empresa</button>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card p-3 border-danger h-100">
-                        <h5 class="text-danger fw-bold">📅 Cronograma</h5>
+                        <h5 class="text-danger fw-bold">Calendario</h5>
                         <div id="cronograma-list"></div>
                         <button type="button" class="btn btn-outline-danger btn-sm w-100 mt-2" onclick="addCronograma()">Adicionar evento</button>
                     </div>
                 </div>
             </div>
-            <button type="button" onclick="salvarInfos()" class="btn btn-dark btn-lg w-100 mt-4">SALVAR INFORMAÇÕES</button>
+            <button type="button" onclick="salvarInfos()" class="btn btn-dark btn-lg w-100 mt-4">SALVAR INFORMACOES</button>
         </form>
     </div>
 
@@ -116,6 +197,22 @@
 <script>
     const API_VAGAS = "/api/vagas";
     const API_INFOS = "/api/infos";
+    const THEME_KEY = "admin_theme";
+
+    function aplicarTema(modoEscuro) {
+        document.body.classList.toggle('dark-mode', modoEscuro);
+        const btn = document.getElementById('btn-theme');
+        if (!btn) return;
+        btn.innerHTML = modoEscuro
+            ? '<i class="bi bi-sun"></i> Modo claro'
+            : '<i class="bi bi-moon-stars"></i> Modo escuro';
+    }
+
+    function alternarTema() {
+        const ativo = !document.body.classList.contains('dark-mode');
+        localStorage.setItem(THEME_KEY, ativo ? 'dark' : 'light');
+        aplicarTema(ativo);
+    }
 
     function mostrarAba(aba) {
         document.getElementById('secao-vagas').style.display = aba === 'vagas' ? 'block' : 'none';
@@ -124,7 +221,7 @@
         document.getElementById('btn-infos').classList.toggle('active', aba === 'infos');
     }
 
-    // --- LÓGICA DAS VAGAS ---
+    // --- LOGICA DAS VAGAS ---
 
     function carregarVagas() {
         fetch(API_VAGAS)
@@ -138,6 +235,7 @@
                             <td>${v.codigo || "-"}</td>
                             <td><strong>${v.titulo}</strong></td>
                             <td>${v.categoria}</td>
+                            <td>${v.validade || "-"}</td>
                             <td><button onclick="deletarVaga(${v.id})" class="btn btn-danger btn-sm">Excluir</button></td>
                         </tr>`;
                 });
@@ -152,8 +250,10 @@
             salario: document.getElementById('salario').value,
             local: document.getElementById('local').value,
             beneficios: document.getElementById('beneficios').value,
+            atribuicoes: document.getElementById('atribuicoes').value,
+            validade: document.getElementById('validade').value,
             categoria: document.getElementById('tipo').value,
-            experiencia: document.getElementById('experiencia').checked ? "Sim" : "Não"
+            experiencia: document.getElementById('experiencia').checked ? "Sim" : "Nao"
         };
         fetch(API_VAGAS, {
             method: 'POST',
@@ -169,7 +269,7 @@
         }
     }
 
-    // --- LÓGICA DAS INFOS ---
+    // --- LOGICA DAS INFOS ---
 
     function criarInput(placeholder, className, value) {
         const input = document.createElement('input');
@@ -205,7 +305,7 @@
         wrap.className = 'processo-item';
 
         const empresaInput = criarInput('Empresa', 'processo-empresa', empresa);
-        const dataInput = criarInput('Data e Horário', 'processo-data', data);
+        const dataInput = criarInput('Data e Horario', 'processo-data', data);
         const textoArea = document.createElement('textarea');
         textoArea.className = 'form-control processo-texto';
         textoArea.rows = 4;
@@ -310,10 +410,12 @@
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(d)
-        }).then(() => alert("Informações da TV atualizadas!"));
+        }).then(() => alert('Informacoes da TV atualizadas!'));
     }
 
-    // Início
+    // Inicio
+    aplicarTema(localStorage.getItem(THEME_KEY) === 'dark');
+    document.getElementById('btn-theme').addEventListener('click', alternarTema);
     carregarVagas();
     carregarInfos();
 </script>

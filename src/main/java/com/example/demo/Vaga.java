@@ -16,6 +16,9 @@ public class Vaga {
     private String codigo;
     private String local;
     private String beneficios;
+    @Column(length = 4000)
+    private String atribuicoes;
+    private String validade;
 
     // --- NOVO CAMPO ---
     private String experiencia; // Vai guardar "Sim" ou "Não"
@@ -41,4 +44,8 @@ public class Vaga {
     public void setLocal(String local) { this.local = local; }
     public String getBeneficios() { return beneficios; }
     public void setBeneficios(String beneficios) { this.beneficios = beneficios; }
+    public String getAtribuicoes() { return atribuicoes; }
+    public void setAtribuicoes(String atribuicoes) { this.atribuicoes = atribuicoes; }
+    public String getValidade() { return validade; }
+    public void setValidade(String validade) { this.validade = validade; }
 }
