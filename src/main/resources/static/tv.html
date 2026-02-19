@@ -228,23 +228,33 @@
     }
     .fullscreen-controls {
         position: fixed;
-        right: 12px;
+        left: 10px;
         bottom: calc(var(--footer-height) + 12px);
         z-index: 1100;
         display: flex;
         flex-direction: column;
-        align-items: flex-end;
+        align-items: flex-start;
         gap: 8px;
     }
     .fullscreen-btn {
         border: none;
-        border-radius: 999px;
-        padding: 8px 12px;
-        background: rgba(0,0,0,0.72);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        padding: 0;
+        background: rgba(0,0,0,0.35);
         color: #fff;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.2px;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.42;
+        transition: opacity 0.2s ease, background 0.2s ease;
+    }
+    .fullscreen-btn:hover,
+    .fullscreen-btn:focus-visible {
+        opacity: 0.78;
+        background: rgba(0,0,0,0.55);
     }
     .fullscreen-tip {
         max-width: 260px;
@@ -319,13 +329,17 @@
   <button class="nav-btn" id="btn-next" aria-label="Proximo">&rsaquo;</button>
 </div>
 <div class="fullscreen-controls">
-  <button class="fullscreen-btn" id="btn-fullscreen" type="button">Tela cheia</button>
+  <button class="fullscreen-btn" id="btn-fullscreen" type="button" aria-label="Entrar em tela cheia" title="Entrar em tela cheia">
+    <i class="bi bi-fullscreen" aria-hidden="true"></i>
+  </button>
   <div class="fullscreen-tip" id="fullscreen-tip"></div>
 </div>
 
 <script>
   const TEMPO_POR_TELA = 30000;
   const TEMPO_ATUALIZAR_QR = 60000;
+  const CACHE_TTL_MS = 45000;
+  const FETCH_TIMEOUT_MS = 10000;
   const categorias = ["CONVENCIONAL", "SUPERIOR", "PCD", "INFO"];
 
   const nomesExibicao = {
@@ -343,8 +357,73 @@
   };
 
   let indiceAtual = 0;
+  let renderToken = 0;
+  const cacheDados = new Map();
+  const requisicoesEmAndamento = new Map();
+
+  function urlPorCategoria(categoria) {
+      return categoria === "INFO"
+          ? "/api/infos"
+          : `/api/vagas/filtro?tipo=${categoria}`;
+  }
+
+  function cacheValido(categoria) {
+      const item = cacheDados.get(categoria);
+      if (!item) return false;
+      return (Date.now() - item.timestamp) <= CACHE_TTL_MS;
+  }
+
+  function proximaCategoria(categoriaAtual) {
+      const idx = categorias.indexOf(categoriaAtual);
+      const proxIdx = (idx + 1) % categorias.length;
+      return categorias[proxIdx];
+  }
+
+  async function fetchComTimeout(url, timeoutMs = FETCH_TIMEOUT_MS) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+          const response = await fetch(url, { signal: controller.signal });
+          if (!response.ok) {
+              throw new Error(`HTTP ${response.status} em ${url}`);
+          }
+          return await response.json();
+      } finally {
+          clearTimeout(timer);
+      }
+  }
+
+  async function buscarDadosCategoria(categoria) {
+      if (cacheValido(categoria)) {
+          return cacheDados.get(categoria).dados;
+      }
+
+      if (requisicoesEmAndamento.has(categoria)) {
+          return requisicoesEmAndamento.get(categoria);
+      }
+
+      const promessa = (async () => {
+          const dados = await fetchComTimeout(urlPorCategoria(categoria));
+          cacheDados.set(categoria, { dados, timestamp: Date.now() });
+          return dados;
+      })();
+
+      requisicoesEmAndamento.set(categoria, promessa);
+      try {
+          return await promessa;
+      } finally {
+          requisicoesEmAndamento.delete(categoria);
+      }
+  }
+
+  function preCarregarCategoria(categoria) {
+      buscarDadosCategoria(categoria).catch((erro) => {
+          console.error("Falha no pre-carregamento:", categoria, erro);
+      });
+  }
 
   async function renderizarCategoria() {
+      const tokenAtual = ++renderToken;
       const categoriaAtual = categorias[indiceAtual];
       const cor = cores[categoriaAtual];
       const container = document.getElementById('lista-vagas');
@@ -353,21 +432,28 @@
       document.getElementById('header-principal').style.borderBottomColor = cor;
       document.getElementById('barra-progresso').style.backgroundColor = cor;
 
-      if (categoriaAtual === "INFO") {
-          container.className = 'container modo-info';
-          renderizarInfo(container);
-      } else {
-          container.className = 'container modo-vagas';
-          try {
-              const response = await fetch(`/api/vagas/filtro?tipo=${categoriaAtual}`);
-              const vagas = await response.json();
-              renderizarVagas(vagas, cor, container);
-          } catch (erro) {
-              console.error("Erro ao buscar vagas:", erro);
-              container.innerHTML = `<h2 style="grid-column: 1/-1; text-align: center; margin-top: 20%;">Erro de conexao com o servidor</h2>`;
-          }
+      container.className = categoriaAtual === "INFO" ? 'container modo-info' : 'container modo-vagas';
+
+      if (!cacheValido(categoriaAtual)) {
+          container.innerHTML = `<h2 style="grid-column: 1/-1; text-align: center; color: #777; margin-top: 20%;">Carregando conteudo...</h2>`;
       }
 
+      try {
+          const dados = await buscarDadosCategoria(categoriaAtual);
+          if (tokenAtual !== renderToken) return;
+
+          if (categoriaAtual === "INFO") {
+              renderizarInfo(container, dados);
+          } else {
+              renderizarVagas(dados, cor, container);
+          }
+      } catch (erro) {
+          if (tokenAtual !== renderToken) return;
+          console.error("Erro ao buscar dados:", erro);
+          container.innerHTML = `<h2 style="grid-column: 1/-1; text-align: center; margin-top: 20%;">Erro de conexao com o servidor</h2>`;
+      }
+
+      preCarregarCategoria(proximaCategoria(categoriaAtual));
       animarBarra();
   }
 
@@ -398,16 +484,7 @@
       ].filter(c => c.data || c.evento);
   }
 
-  async function renderizarInfo(container) {
-      let dados;
-      try {
-          const res = await fetch('/api/infos');
-          dados = await res.json();
-      } catch (e) {
-          console.error("Erro ao buscar infos", e);
-          return;
-      }
-
+  function renderizarInfo(container, dados) {
       const cursos = normalizarCursos(dados);
       const processos = normalizarProcessos(dados);
       const cronograma = normalizarCronograma(dados);
@@ -592,7 +669,11 @@
       const btn = document.getElementById('btn-fullscreen');
       if (!btn) return;
       const emTelaCheia = !!(document.fullscreenElement || document.webkitFullscreenElement);
-      btn.textContent = emTelaCheia ? 'Sair tela cheia' : 'Tela cheia';
+      btn.innerHTML = emTelaCheia
+          ? '<i class="bi bi-fullscreen-exit" aria-hidden="true"></i>'
+          : '<i class="bi bi-fullscreen" aria-hidden="true"></i>';
+      btn.setAttribute('aria-label', emTelaCheia ? 'Sair da tela cheia' : 'Entrar em tela cheia');
+      btn.setAttribute('title', emTelaCheia ? 'Sair da tela cheia' : 'Entrar em tela cheia');
   }
 
   async function alternarTelaCheia() {
