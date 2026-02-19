@@ -18,11 +18,13 @@ public class MuralTokenService {
     private final Base64.Encoder b64UrlEncoder = Base64.getUrlEncoder().withoutPadding();
     private final Base64.Decoder b64UrlDecoder = Base64.getUrlDecoder();
     private final byte[] secretKey;
+    private final boolean bindIpScope;
     private final long qrValiditySeconds;
     private final long sessionValiditySeconds;
 
     public MuralTokenService(
             @Value("${mural.token.secret:}") String configuredSecret,
+            @Value("${mural.token.bind-ip:true}") boolean bindIpScope,
             @Value("${mural.token.qr-validity-minutes:120}") long qrValidityMinutes,
             @Value("${mural.token.session-validity-minutes:15}") long sessionValidityMinutes
     ) {
@@ -30,6 +32,7 @@ public class MuralTokenService {
                 ? Long.toHexString(RANDOM.nextLong()) + Long.toHexString(System.nanoTime())
                 : configuredSecret;
         this.secretKey = finalSecret.getBytes(StandardCharsets.UTF_8);
+        this.bindIpScope = bindIpScope;
         this.qrValiditySeconds = Math.max(60, qrValidityMinutes * 60);
         this.sessionValiditySeconds = Math.max(60, sessionValidityMinutes * 60);
     }
@@ -124,6 +127,9 @@ public class MuralTokenService {
     }
 
     private String buildIpScope(String ip) {
+        if (!bindIpScope) {
+            return "any";
+        }
         if (ip == null || ip.isBlank()) {
             return "unknown";
         }
