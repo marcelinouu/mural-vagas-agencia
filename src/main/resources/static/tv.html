@@ -340,6 +340,7 @@
   const TEMPO_ATUALIZAR_QR = 60000;
   const CACHE_TTL_MS = 45000;
   const FETCH_TIMEOUT_MS = 10000;
+  const AUTO_REFRESH_INATIVIDADE_MS = 10 * 60 * 1000;
   const categorias = ["CONVENCIONAL", "SUPERIOR", "PCD", "INFO"];
 
   const nomesExibicao = {
@@ -358,6 +359,7 @@
 
   let indiceAtual = 0;
   let renderToken = 0;
+  let inactivityRefreshTimer;
   const cacheDados = new Map();
   const requisicoesEmAndamento = new Map();
 
@@ -630,6 +632,17 @@
       cicloTimer = setInterval(avancarCiclo, TEMPO_POR_TELA);
   }
 
+  function agendarAutoRefreshPorInatividade() {
+      clearTimeout(inactivityRefreshTimer);
+      inactivityRefreshTimer = setTimeout(() => {
+          window.location.reload();
+      }, AUTO_REFRESH_INATIVIDADE_MS);
+  }
+
+  function registrarAtividadeUsuario() {
+      agendarAutoRefreshPorInatividade();
+  }
+
   async function atualizarQrRodape() {
       try {
           const res = await fetch('/api/mural/token');
@@ -741,6 +754,11 @@
   }
   window.addEventListener('mousemove', mostrarBotoesTemporario);
   window.addEventListener('touchstart', mostrarBotoesTemporario, { passive: true });
+  window.addEventListener('pointerdown', registrarAtividadeUsuario, { passive: true });
+  window.addEventListener('touchstart', registrarAtividadeUsuario, { passive: true });
+  window.addEventListener('keydown', registrarAtividadeUsuario);
+  window.addEventListener('mousemove', registrarAtividadeUsuario);
+  window.addEventListener('scroll', registrarAtividadeUsuario, { passive: true });
   window.addEventListener('resize', atualizarAlturaApp);
   window.addEventListener('orientationchange', atualizarAlturaApp);
   if (window.visualViewport) {
@@ -753,6 +771,7 @@
   atualizarAlturaApp();
   atualizarBotaoTelaCheia();
   atualizarQrRodape();
+  agendarAutoRefreshPorInatividade();
   setInterval(atualizarQrRodape, TEMPO_ATUALIZAR_QR);
 </script>
 </body>
