@@ -23,14 +23,14 @@ public class VagaController {
     // 2. Listar TODAS as vagas (GET)
     @GetMapping
     public List<Vaga> listarTodas() {
-        return repository.findAll();
+        return repository.findAllOrderByValidadeAsc();
     }
 
     // 3. Listar por Categoria (GET) - O segredo da TV!
     // Ex: localhost:8080/vagas/filtro?tipo=CONVENCIONAL
     @GetMapping("/filtro")
     public List<Vaga> listarPorCategoria(@RequestParam String tipo) {
-        return repository.findByCategoria(tipo.toUpperCase());
+        return repository.findByCategoriaOrderByValidadeAsc(tipo);
     }
     // 4. Deletar Vaga (DELETE)
     // Ex: O site manda DELETE para localhost:8080/vagas/5
@@ -47,7 +47,7 @@ public class VagaController {
         String headerValue = "attachment; filename=relatorio_vagas.pdf";
         response.setHeader(headerKey, headerValue);
 
-        List<Vaga> todasVagas = repository.findAll();
+        List<Vaga> todasVagas = repository.findAllOrderByValidadeAsc();
 
         try {
             com.lowagie.text.Document document = new com.lowagie.text.Document(com.lowagie.text.PageSize.A4);

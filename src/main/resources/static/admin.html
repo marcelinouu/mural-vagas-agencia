@@ -223,6 +223,19 @@
 
     // --- LOGICA DAS VAGAS ---
 
+    function formatarDataBR(valor) {
+        if (!valor) return "-";
+        if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+            const [y, m, d] = valor.split("-");
+            return `${d}/${m}/${y}`;
+        }
+        const dt = new Date(valor);
+        if (!isNaN(dt)) {
+            return dt.toLocaleDateString("pt-BR");
+        }
+        return valor;
+    }
+
     function carregarVagas() {
         fetch(API_VAGAS)
             .then(res => res.json())
@@ -235,7 +248,7 @@
                             <td>${v.codigo || "-"}</td>
                             <td><strong>${v.titulo}</strong></td>
                             <td>${v.categoria}</td>
-                            <td>${v.validade || "-"}</td>
+                            <td>${formatarDataBR(v.validade)}</td>
                             <td><button onclick="deletarVaga(${v.id})" class="btn btn-danger btn-sm">Excluir</button></td>
                         </tr>`;
                 });

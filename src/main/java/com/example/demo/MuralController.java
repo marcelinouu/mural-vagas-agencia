@@ -70,7 +70,7 @@ public class MuralController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso do mural invalido para esta rede.");
         }
 
-        List<Vaga> vagas = vagaRepository.findAll();
+        List<Vaga> vagas = vagaRepository.findAllOrderByValidadeAsc();
         InfoController.InfoDTO infos = infoController.getInfos();
         return new MuralDataResponse(vagas, infos, result.expiresAtEpochSeconds());
     }

@@ -401,6 +401,19 @@
     return new Date(epochSeconds * 1000).toLocaleString("pt-BR");
   }
 
+  function formatarDataBR(valor) {
+    if (!valor) return "-";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+      const [y, m, d] = valor.split("-");
+      return `${d}/${m}/${y}`;
+    }
+    const dt = new Date(valor);
+    if (!isNaN(dt)) {
+      return dt.toLocaleDateString("pt-BR");
+    }
+    return valor;
+  }
+
   function statusSessao() {
     if (!expiraEm) return;
     const agora = Math.floor(Date.now() / 1000);
@@ -440,7 +453,7 @@
       <div class="row"><div class="label">Experiencia</div><div class="value">${vaga.experiencia || "-"}</div></div>
       <div class="row"><div class="label">Beneficios</div><div class="value">${vaga.beneficios || "-"}</div></div>
       <div class="row"><div class="label">Atribuicoes</div><div class="value">${vaga.atribuicoes || "-"}</div></div>
-      <div class="row"><div class="label">Validade da vaga</div><div class="value">${vaga.validade || "-"}</div></div>
+      <div class="row"><div class="label">Validade da vaga</div><div class="value">${formatarDataBR(vaga.validade)}</div></div>
     `;
     sheetEl.classList.add("show");
   }
