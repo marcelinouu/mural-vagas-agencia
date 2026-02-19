@@ -328,6 +328,8 @@
   let abaAtual = "CONVENCIONAL";
   let expiraEm = 0;
   let sessionToken = null;
+  const CACHE_TTL_MS = 60000;
+  const CACHE_KEY_PREFIX = "mural_data_cache_v1:";
 
   function atualizarAlturaApp() {
     const altura = window.visualViewport ? window.visualViewport.height : window.innerHeight;
@@ -340,6 +342,45 @@
       cache: "no-store",
       credentials: "same-origin"
     });
+  }
+
+  function chaveCacheMural(token) {
+    return `${CACHE_KEY_PREFIX}${token || "anon"}`;
+  }
+
+  function salvarCacheMural(token, payload) {
+    if (!token || !payload) return;
+    try {
+      const cache = {
+        savedAt: Date.now(),
+        payload
+      };
+      localStorage.setItem(chaveCacheMural(token), JSON.stringify(cache));
+    } catch (_) {}
+  }
+
+  function lerCacheMural(token, ttlMs = CACHE_TTL_MS) {
+    if (!token) return null;
+    try {
+      const raw = localStorage.getItem(chaveCacheMural(token));
+      if (!raw) return null;
+      const cache = JSON.parse(raw);
+      const savedAt = Number(cache && cache.savedAt);
+      if (!savedAt || !cache.payload) return null;
+      const idade = Date.now() - savedAt;
+      if (idade > ttlMs) return null;
+      return cache.payload;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function aplicarDadosMural(payload) {
+    dataAtual = payload;
+    expiraEm = dataAtual.expiresAtEpochSeconds || 0;
+    renderTabs();
+    renderConteudo();
+    statusSessao();
   }
 
   function corDaCategoria(cat) {
@@ -483,11 +524,9 @@
   async function carregarDados() {
     const res = await apiFetch(`/api/mural/data?t=${encodeURIComponent(sessionToken)}`);
     if (!res.ok) throw new Error("Acesso negado");
-    dataAtual = await res.json();
-    expiraEm = dataAtual.expiresAtEpochSeconds || 0;
-    renderTabs();
-    renderConteudo();
-    statusSessao();
+    const payload = await res.json();
+    aplicarDadosMural(payload);
+    salvarCacheMural(sessionToken, payload);
   }
 
   async function iniciarSessaoComQr(token) {
@@ -539,6 +578,8 @@
   window.addEventListener("pageshow", (event) => {
     if (!event.persisted) return;
     atualizarAlturaApp();
+    const cache = lerCacheMural(sessionToken);
+    if (cache) aplicarDadosMural(cache);
     carregarDados().catch(() => {});
   });
   atualizarAlturaApp();
@@ -550,12 +591,29 @@
       if (!sessaoValida) {
         await iniciarSessaoComQr(tokenAtual);
       }
-      await carregarDados();
+      const cache = lerCacheMural(sessionToken);
+      if (cache) {
+        aplicarDadosMural(cache);
+        statusEl.textContent = "Exibindo dados em cache. Atualizando...";
+      }
+      await carregarDados().catch((e) => {
+        if (cache) {
+          statusEl.textContent = "Sem conexao no momento. Exibindo dados recentes em cache.";
+          return;
+        }
+        throw e;
+      });
       setInterval(statusSessao, 1000);
       setInterval(async () => {
         try {
           await carregarDados();
         } catch (e) {
+          const cacheAtual = lerCacheMural(sessionToken);
+          if (cacheAtual) {
+            aplicarDadosMural(cacheAtual);
+            statusEl.textContent = "Falha temporaria de rede. Exibindo dados recentes em cache.";
+            return;
+          }
           renderErro("Sessao expirada ou fora da rede da agencia. Escaneie novamente o QR da TV.");
         }
       }, 60000);
