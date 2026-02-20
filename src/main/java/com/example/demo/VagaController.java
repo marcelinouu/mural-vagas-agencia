@@ -1,7 +1,9 @@
 package com.example.demo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @RestController // Diz que essa classe vai responder requisições da Web
@@ -37,6 +39,27 @@ public class VagaController {
     @DeleteMapping("/{id}")
     public void deletarVaga(@PathVariable Long id) {
         repository.deleteById(id);
+    }
+
+    // 5. Atualizar Vaga (PUT)
+    @PutMapping("/{id}")
+    public Vaga atualizar(@PathVariable Long id, @RequestBody Vaga payload) {
+        Vaga vaga = repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vaga nao encontrada"));
+
+        vaga.setCodigo(payload.getCodigo());
+        vaga.setTitulo(payload.getTitulo());
+        vaga.setSalario(payload.getSalario());
+        vaga.setEscolaridade(payload.getEscolaridade());
+        vaga.setLocal(payload.getLocal());
+        vaga.setBeneficios(payload.getBeneficios());
+        vaga.setAtribuicoes(payload.getAtribuicoes());
+        vaga.setValidade(payload.getValidade());
+        vaga.setCategoria(payload.getCategoria() == null ? null : payload.getCategoria().toUpperCase());
+        vaga.setExperiencia(payload.getExperiencia());
+        vaga.setDescricao(payload.getDescricao());
+
+        return repository.save(vaga);
     }
     // 5. Gerar Relatório PDF
     // 5. Gerar Relatório PDF (Compacto e Agrupado)

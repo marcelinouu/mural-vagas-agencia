@@ -141,7 +141,8 @@
                             <label class="form-check-label">Exige Experiência?</label>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100">CADASTRAR VAGA</button>
+                        <button type="submit" class="btn btn-primary w-100" id="btn-salvar-vaga">CADASTRAR VAGA</button>
+                        <button type="button" class="btn btn-outline-secondary w-100 mt-2" id="btn-cancelar-edicao" style="display: none;">CANCELAR EDICAO</button>
                     </form>
                 </div>
             </div>
@@ -201,6 +202,8 @@
     const API_VAGAS = "/api/vagas";
     const API_INFOS = "/api/infos";
     const THEME_KEY = "admin_theme";
+    let editId = null;
+    let vagasCache = [];
 
     function aplicarTema(modoEscuro) {
         document.body.classList.toggle('dark-mode', modoEscuro);
@@ -243,16 +246,20 @@
         fetch(API_VAGAS)
             .then(res => res.json())
             .then(vagas => {
+                vagasCache = Array.isArray(vagas) ? vagas : [];
                 const tbody = document.getElementById('tabela-vagas');
                 tbody.innerHTML = '';
-                vagas.forEach(v => {
+                vagasCache.forEach(v => {
                     tbody.innerHTML += `
                         <tr>
                             <td>${v.codigo || "-"}</td>
                             <td><strong>${v.titulo}</strong></td>
                             <td>${v.categoria}</td>
                             <td>${formatarDataBR(v.validade)}</td>
-                            <td><button onclick="deletarVaga(${v.id})" class="btn btn-danger btn-sm">Excluir</button></td>
+                            <td>
+                                <button onclick="editarVaga(${v.id})" class="btn btn-outline-secondary btn-sm me-1" title="Editar"><i class="bi bi-pencil"></i></button>
+                                <button onclick="deletarVaga(${v.id})" class="btn btn-danger btn-sm">Excluir</button>
+                            </td>
                         </tr>`;
                 });
             });
@@ -272,11 +279,16 @@
             categoria: document.getElementById('tipo').value,
             experiencia: document.getElementById('experiencia').checked ? "Sim" : "Nao"
         };
-        fetch(API_VAGAS, {
-            method: 'POST',
+        const url = editId ? (API_VAGAS + "/" + editId) : API_VAGAS;
+        const method = editId ? 'PUT' : 'POST';
+        fetch(url, {
+            method: method,
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(dados)
-        }).then(() => { carregarVagas(); document.getElementById('formVaga').reset(); });
+        }).then(() => {
+            carregarVagas();
+            sairEdicao();
+        });
     });
 
     function deletarVaga(id) {
@@ -285,6 +297,50 @@
                 .then(() => carregarVagas());
         }
     }
+
+    function normalizarDataInput(valor) {
+        if (!valor) return "";
+        if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+            return valor;
+        }
+        const dt = new Date(valor);
+        if (!isNaN(dt)) {
+            return dt.toISOString().slice(0, 10);
+        }
+        return "";
+    }
+
+    function editarVaga(id) {
+        const v = vagasCache.find(x => x.id === id);
+        if (!v) return;
+
+        editId = id;
+        document.getElementById('codigo').value = v.codigo || "";
+        document.getElementById('titulo').value = v.titulo || "";
+        document.getElementById('salario').value = v.salario || "";
+        document.getElementById('escolaridade').value = v.escolaridade || "";
+        document.getElementById('local').value = v.local || "";
+        document.getElementById('beneficios').value = v.beneficios || "";
+        document.getElementById('atribuicoes').value = v.atribuicoes || "";
+        document.getElementById('validade').value = normalizarDataInput(v.validade);
+        if (v.categoria) document.getElementById('tipo').value = v.categoria;
+
+        const exp = (v.experiencia || "").toString().toLowerCase();
+        document.getElementById('experiencia').checked = (exp === "sim" || v.experiencia === true);
+
+        document.getElementById('btn-salvar-vaga').textContent = "SALVAR ALTERACOES";
+        document.getElementById('btn-cancelar-edicao').style.display = "block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function sairEdicao() {
+        editId = null;
+        document.getElementById('formVaga').reset();
+        document.getElementById('btn-salvar-vaga').textContent = "CADASTRAR VAGA";
+        document.getElementById('btn-cancelar-edicao').style.display = "none";
+    }
+
+    document.getElementById('btn-cancelar-edicao').addEventListener('click', sairEdicao);
 
     // --- LOGICA DAS INFOS ---
 
