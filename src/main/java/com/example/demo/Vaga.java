@@ -11,6 +11,7 @@ public class Vaga {
 
     private String titulo;
     private String salario;
+    private String escolaridade;
     private String descricao;
     private String categoria;
     private String codigo;
@@ -34,6 +35,8 @@ public class Vaga {
     public void setTitulo(String titulo) { this.titulo = titulo; }
     public String getSalario() { return salario; }
     public void setSalario(String salario) { this.salario = salario; }
+    public String getEscolaridade() { return escolaridade; }
+    public void setEscolaridade(String escolaridade) { this.escolaridade = escolaridade; }
     public String getDescricao() { return descricao; }
     public void setDescricao(String descricao) { this.descricao = descricao; }
     public String getCategoria() { return categoria; }
