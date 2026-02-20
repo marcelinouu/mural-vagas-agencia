@@ -239,37 +239,12 @@ public class InfoController {
     }
 
     public static class InfoDTO {
-        public List<Curso> cursos = new ArrayList<>(
-                List.of(
-                        new Curso("Informatica Basica", "Inicio: 15/03 - Vagas Abertas"),
-                        new Curso("Atendimento ao Cliente", "Lista de Espera - Manha"),
-                        new Curso("Operador de Empilhadeira", "Parceria SENAI - Noturno")
-                )
-        );
-
-        public List<ProcessoItem> processos = new ArrayList<>(
-                List.of(
-                        new ProcessoItem(
-                                "SUPERMERCADOS CONDOR",
-                                "08/06/26 - das 08h00 as 15h00",
-                                List.of("Auxiliar de limpeza", "Operador de caixa", "Repositor de mercadorias")
-                        )
-                )
-        );
-
-        public String empresaNome = "SUPERMERCADOS CONDOR";
-        public String empresaData = "08/06/26 - das 08h00 as 15h00";
-        public List<String> processoVagas = new ArrayList<>(
-                List.of("Auxiliar de limpeza", "Operador de caixa", "Repositor de mercadorias")
-        );
-
-        public List<CronogramaItem> cronograma = new ArrayList<>(
-                List.of(
-                        new CronogramaItem("05/08/2026", "MUTIRAO GERAL DE VAGAS"),
-                        new CronogramaItem("06/09/2026", "MUTIRAO DA INCLUSAO (PCD)"),
-                        new CronogramaItem("04/11/2026", "PROCESSO SELETIVO BAIRROS")
-                )
-        );
+        public List<Curso> cursos = new ArrayList<>();
+        public List<ProcessoItem> processos = new ArrayList<>();
+        public String empresaNome = "";
+        public String empresaData = "";
+        public List<String> processoVagas = new ArrayList<>();
+        public List<CronogramaItem> cronograma = new ArrayList<>();
     }
 
     public static class Curso {
