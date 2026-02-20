@@ -731,6 +731,17 @@
       }
   }
 
+  function forcarAtualizacao() {
+      const categoriaAtual = categorias[indiceAtual];
+      cacheDados.delete(categoriaAtual);
+      renderizarCategoria();
+  }
+
+  const sse = new EventSource('/api/vagas/stream');
+  sse.addEventListener('vagas', () => forcarAtualizacao());
+  sse.onmessage = () => forcarAtualizacao();
+  sse.onerror = () => {};
+
   renderizarCategoria();
   let cicloTimer = setInterval(avancarCiclo, TEMPO_POR_TELA);
 
@@ -778,4 +789,5 @@
 </script>
 </body>
 </html>
+
 

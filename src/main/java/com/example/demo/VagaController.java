@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.List;
 
 @RestController // Diz que essa classe vai responder requisições da Web
@@ -12,6 +13,8 @@ public class VagaController {
 
     @Autowired
     private VagaRepository repository; // Injeta o repositório que vc acabou de criar
+    @Autowired
+    private VagaSseService sseService;
 
     // 1. Cadastrar uma vaga (POST)
     // Quem acessar isso enviando dados, vai salvar no banco
@@ -19,7 +22,9 @@ public class VagaController {
     public Vaga cadastrar(@RequestBody Vaga vaga) {
         // Aqui você pode forçar salvar como maiúsculo se quiser
         vaga.setCategoria(vaga.getCategoria().toUpperCase());
-        return repository.save(vaga);
+        Vaga saved = repository.save(vaga);
+        sseService.notifyChange();
+        return saved;
     }
 
     // 2. Listar TODAS as vagas (GET)
@@ -39,6 +44,7 @@ public class VagaController {
     @DeleteMapping("/{id}")
     public void deletarVaga(@PathVariable Long id) {
         repository.deleteById(id);
+        sseService.notifyChange();
     }
 
     // 5. Atualizar Vaga (PUT)
@@ -59,9 +65,15 @@ public class VagaController {
         vaga.setExperiencia(payload.getExperiencia());
         vaga.setDescricao(payload.getDescricao());
 
-        return repository.save(vaga);
+        Vaga saved = repository.save(vaga);
+        sseService.notifyChange();
+        return saved;
     }
-    // 5. Gerar Relatório PDF
+    // 6. Stream de atualizacoes para a TV (SSE)
+    @GetMapping("/stream")
+    public SseEmitter stream() {
+        return sseService.subscribe();
+    }
     // 5. Gerar Relatório PDF (Compacto e Agrupado)
     @GetMapping("/relatorio")
     public void gerarRelatorio(jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
@@ -168,3 +180,6 @@ public class VagaController {
         table.addCell(cell);
     }
 }
+
+
+
