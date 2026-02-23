@@ -71,10 +71,16 @@
         position: relative;
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
         gap: 12px;
         padding: 8px calc(14px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
         box-sizing: border-box;
+    }
+    .rodape-centro {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
     }
     .rodape-texto {
         min-width: 0;
@@ -102,6 +108,31 @@
         border-radius: 8px;
         object-fit: contain;
         flex-shrink: 0;
+    }
+    .rodape-aviso {
+        font-size: 1em;
+        font-weight: 900;
+        color: #fff;
+        background: #d32f2f;
+        padding: 10px 14px;
+        border-radius: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        flex-shrink: 0;
+        text-align: center;
+        line-height: 1.1;
+    }
+    .aviso-titulo {
+        font-size: 1.4em;
+        font-weight: 900;
+        display: block;
+    }
+    .aviso-texto {
+        font-size: 1em;
+        font-weight: 900;
+        display: block;
     }
 
     /* == ESTILO DAS VAGAS (Grade 6x5) == */
@@ -318,11 +349,21 @@
 
 <div class="container" id="lista-vagas"></div>
 <footer class="rodape">
-  <div class="rodape-texto">
-    <p class="rodape-titulo">ACESSE JÁ O NOSSO MURAL INTERATIVO!</p>
-    <div class="rodape-sub">Escaneie o Qr Code pelo seu celular e veja detalhes das vagas</div>
+  <div class="rodape-aviso">
+    <span class="aviso-titulo">ATENÇÃO!</span>
+    <span class="aviso-texto">NÃO tocar na tela da TV</span>
   </div>
-  <img class="rodape-qr" id="qr-mural" alt="QR code do Mural Interativo">
+  <div class="rodape-centro">
+    <div class="rodape-texto">
+      <p class="rodape-titulo">ACESSE JÁ O NOSSO MURAL INTERATIVO!</p>
+      <div class="rodape-sub">Escaneie o Qr Code pelo seu celular e veja detalhes das vagas</div>
+    </div>
+    <img class="rodape-qr" id="qr-mural" alt="QR code do Mural Interativo">
+  </div>
+  <div class="rodape-aviso">
+    <span class="aviso-titulo">ATENÇÃO!</span>
+    <span class="aviso-texto">NÃO tocar na tela da TV</span>
+  </div>
 </footer>
 <div class="barra-tempo" id="barra-progresso"></div>
 <div class="nav-buttons" id="nav-buttons">
@@ -586,9 +627,10 @@
           const ben = vaga.beneficios ? vaga.beneficios : "";
 
           let tagExp = "";
-          const exp = (vaga.experiencia || "").toString().toLowerCase();
-          if (exp === "sim" || vaga.experiencia === true) tagExp = `<span class="tag-exp com-exp">COM EXPERIÊNCIA</span>`;
-          if (exp === "nao" || exp === "n\u00e3o" || vaga.experiencia === false) tagExp = `<span class="tag-exp sem-exp">SEM EXPERIÊNCIA</span>`;
+          const expRaw = (vaga.experiencia || "").toString().trim();
+          if (expRaw) tagExp = `<span class="tag-exp com-exp">${expRaw}</span>`;
+
+
 
           card.innerHTML = `
               <div class="card-top">
@@ -789,5 +831,7 @@
 </script>
 </body>
 </html>
+
+
 
 

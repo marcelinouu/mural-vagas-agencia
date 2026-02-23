@@ -136,10 +136,13 @@
                             <option value="PCD">PCD</option>
                         </select>
 
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="experiencia">
-                            <label class="form-check-label">Exige Experiência?</label>
-                        </div>
+                        <label class="campo-label" for="experiencia">Experiência</label>
+                        <select id="experiencia" class="form-control mb-3">
+                            <option value="COM EXPERIÊNCIA">COM EXPERIÊNCIA</option>
+                            <option value="SEM EXPERIÊNCIA">SEM EXPERIÊNCIA</option>
+                            <option value="ESTÁGIO">ESTÁGIO</option>
+                            <option value="JOVEM APRENDIZ">JOVEM APRENDIZ</option>
+                        </select>
 
                         <button type="submit" class="btn btn-primary w-100" id="btn-salvar-vaga">CADASTRAR VAGA</button>
                         <button type="button" class="btn btn-outline-secondary w-100 mt-2" id="btn-cancelar-edicao" style="display: none;">CANCELAR EDICAO</button>
@@ -277,7 +280,7 @@
             atribuicoes: document.getElementById('atribuicoes').value,
             validade: document.getElementById('validade').value,
             categoria: document.getElementById('tipo').value,
-            experiencia: document.getElementById('experiencia').checked ? "Sim" : "Nao"
+            experiencia: document.getElementById('experiencia').value
         };
         const url = editId ? (API_VAGAS + "/" + editId) : API_VAGAS;
         const method = editId ? 'PUT' : 'POST';
@@ -325,8 +328,8 @@
         document.getElementById('validade').value = normalizarDataInput(v.validade);
         if (v.categoria) document.getElementById('tipo').value = v.categoria;
 
-        const exp = (v.experiencia || "").toString().toLowerCase();
-        document.getElementById('experiencia').checked = (exp === "sim" || v.experiencia === true);
+        if (v.experiencia) document.getElementById('experiencia').value = v.experiencia;
+
 
         document.getElementById('btn-salvar-vaga').textContent = "SALVAR ALTERACOES";
         document.getElementById('btn-cancelar-edicao').style.display = "block";
@@ -494,3 +497,5 @@
 </script>
 </body>
 </html>
+
+
