@@ -272,13 +272,13 @@
     }
     .fullscreen-btn {
         border: none;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
         padding: 0;
         background: rgba(0,0,0,0.35);
         color: #fff;
-        font-size: 14px;
+        font-size: 10px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -302,6 +302,39 @@
     }
     .fullscreen-tip.show {
         display: block;
+    }
+
+    #interaction-blocker {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: transparent;
+        pointer-events: auto;
+    }
+
+    .interaction-lock-btn {
+        position: fixed;
+        right: calc(10px + env(safe-area-inset-right));
+        bottom: calc(var(--footer-height) + 10px + env(safe-area-inset-bottom));
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        border: none;
+        background: rgba(0,0,0,0.35);
+        color: #fff;
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.35;
+        z-index: 2100;
+        transition: opacity 0.2s ease, background 0.2s ease;
+        pointer-events: auto;
+    }
+    .interaction-lock-btn:hover,
+    .interaction-lock-btn:focus-visible {
+        opacity: 0.75;
+        background: rgba(0,0,0,0.6);
     }
 
     /* Cores das Colunas Info */
@@ -378,6 +411,10 @@
   </button>
   <div class="fullscreen-tip" id="fullscreen-tip"></div>
 </div>
+<div id="interaction-blocker" hidden></div>
+<button class="interaction-lock-btn" id="btn-lock" type="button" aria-pressed="false" aria-label="Bloquear interacao" title="Bloquear interacao">
+  <i class="bi bi-unlock" aria-hidden="true"></i>
+</button>
 
 <script>
   const TEMPO_POR_TELA = 30000;
@@ -836,7 +873,27 @@
   if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', atualizarAlturaApp);
   }
+  function setInteractionLock(locked) {
+      const blocker = document.getElementById('interaction-blocker');
+      const btn = document.getElementById('btn-lock');
+      if (!blocker || !btn) return;
+      blocker.hidden = !locked;
+      btn.setAttribute('aria-pressed', locked ? 'true' : 'false');
+      btn.setAttribute('aria-label', locked ? 'Desbloquear interacao' : 'Bloquear interacao');
+      btn.setAttribute('title', locked ? 'Desbloquear interacao' : 'Bloquear interacao');
+      btn.innerHTML = locked
+          ? '<i class="bi bi-lock-fill" aria-hidden="true"></i>'
+          : '<i class="bi bi-unlock" aria-hidden="true"></i>';
+  }
+
+  function alternarInteractionLock() {
+      const blocker = document.getElementById('interaction-blocker');
+      if (!blocker) return;
+      setInteractionLock(blocker.hidden);
+  }
+
   document.getElementById('btn-fullscreen').addEventListener('click', alternarTelaCheia);
+  document.getElementById('btn-lock').addEventListener('click', alternarInteractionLock);
   document.addEventListener('fullscreenchange', atualizarBotaoTelaCheia);
   document.addEventListener('webkitfullscreenchange', atualizarBotaoTelaCheia);
   document.addEventListener('pointerdown', tentarTelaCheia, { once: true });
