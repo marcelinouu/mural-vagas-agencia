@@ -422,6 +422,7 @@
   const CACHE_TTL_MS = 45000;
   const FETCH_TIMEOUT_MS = 10000;
   const AUTO_REFRESH_INATIVIDADE_MS = 10 * 60 * 1000;
+  const KEEPALIVE_MS = 5 * 60 * 1000;
   const categorias = ["CONVENCIONAL", "SUPERIOR", "PCD", "INFO"];
 
   const nomesExibicao = {
@@ -733,7 +734,10 @@
   function agendarAutoRefreshPorInatividade() {
       clearTimeout(inactivityRefreshTimer);
       inactivityRefreshTimer = setTimeout(() => {
-          window.location.reload();
+          // Evita sair da tela cheia; faz um refresh "suave" dos dados.
+          forcarAtualizacao();
+          atualizarQrRodape();
+          iniciarTimer();
       }, AUTO_REFRESH_INATIVIDADE_MS);
   }
 
@@ -748,6 +752,14 @@
           document.getElementById('qr-mural').src = `${dados.qrUrl}&v=${Date.now()}`;
       } catch (e) {
           console.error('Falha ao atualizar QR do mural:', e);
+      }
+  }
+
+  async function pingHealth() {
+      try {
+          await fetch('/api/health', { cache: 'no-store' });
+      } catch (e) {
+          // Falhas de rede nao devem interromper o painel.
       }
   }
 
@@ -902,6 +914,8 @@
   atualizarQrRodape();
   agendarAutoRefreshPorInatividade();
   setInterval(atualizarQrRodape, TEMPO_ATUALIZAR_QR);
+  pingHealth();
+  setInterval(pingHealth, KEEPALIVE_MS);
 </script>
 </body>
 </html>
