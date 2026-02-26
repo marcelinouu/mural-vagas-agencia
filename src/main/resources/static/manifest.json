@@ -1,0 +1,17 @@
+{
+  "name": "Mural de Vagas",
+  "short_name": "Mural",
+  "start_url": "/mural.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f6fa",
+  "theme_color": "#0a66d1",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

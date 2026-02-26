@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Mural Interativo</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0a66d1">
+  <link rel="apple-touch-icon" href="/logo.png">
   <style>
     :root {
       --bg: #f3f6fa;
@@ -634,6 +637,13 @@
       renderErro(e.message || "Nao foi possivel carregar o mural.");
     }
   })();
+</script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    });
+  }
 </script>
 </body>
 </html>
