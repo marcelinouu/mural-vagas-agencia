@@ -9,16 +9,16 @@
   <link rel="apple-touch-icon" href="/logo.png">
   <style>
     :root {
-      --bg: #eff5f2;
-      --panel: #f7fbf9;
+      --bg: #eef3f9;
+      --panel: #f7faff;
       --card: #ffffff;
-      --line: #d9e6df;
-      --ink: #163126;
-      --muted: #5e7267;
-      --brand: #0f7a5f;
-      --brand-deep: #0b5b47;
-      --brand-soft: #dcefe8;
-      --shadow: 0 14px 34px rgba(9, 48, 36, 0.10);
+      --line: #d8e1ee;
+      --ink: #16263a;
+      --muted: #617186;
+      --brand: #1f4f8a;
+      --brand-deep: #163a67;
+      --brand-soft: #dce8f6;
+      --shadow: 0 14px 34px rgba(14, 34, 66, 0.10);
     }
 
     * { box-sizing: border-box; }
@@ -28,8 +28,8 @@
       font-family: "Segoe UI", Roboto, Arial, sans-serif;
       color: var(--ink);
       background:
-        radial-gradient(circle at top right, rgba(15,122,95,0.10), transparent 28%),
-        linear-gradient(180deg, #f8fcfa 0%, var(--bg) 48%, #e7f0eb 100%);
+        radial-gradient(circle at top right, rgba(31,79,138,0.10), transparent 28%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 48%, #e7eef7 100%);
     }
 
     .app {
@@ -333,15 +333,41 @@
       .replace(/>/g, "&gt;");
   }
 
-  function formatarRichText(html) {
-    const base = escaparHtml(html || "-");
-    return base
-      .replace(/&lt;b&gt;/gi, "<strong>")
-      .replace(/&lt;\/b&gt;/gi, "</strong>")
-      .replace(/&lt;strong&gt;/gi, "<strong>")
-      .replace(/&lt;\/strong&gt;/gi, "</strong>")
-      .replace(/<br\s*\/?>/gi, "<br>")
-      .replace(/\n/g, "<br>");
+  function sanitizeRichHtml(html) {
+    const root = document.createElement("div");
+    root.innerHTML = html || "";
+
+    function walk(node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return escaparHtml(node.textContent || "");
+      }
+
+      if (node.nodeType !== Node.ELEMENT_NODE) {
+        return "";
+      }
+
+      const tag = node.tagName.toLowerCase();
+      const children = Array.from(node.childNodes).map(walk).join("");
+      const fontWeight = (node.style && node.style.fontWeight ? node.style.fontWeight : "").toLowerCase();
+      const isBold = tag === "b" || tag === "strong" || fontWeight === "bold" || Number(fontWeight) >= 600;
+
+      if (tag === "br") {
+        return "<br>";
+      }
+
+      if (tag === "div" || tag === "p") {
+        return children ? `${children}<br>` : "";
+      }
+
+      if (isBold) {
+        return `<strong>${children}</strong>`;
+      }
+
+      return children;
+    }
+
+    const sanitized = Array.from(root.childNodes).map(walk).join("");
+    return sanitized.replace(/(<br>\s*)+$/i, "") || "-";
   }
 
   function formatarTextoPlano(html) {
@@ -378,7 +404,7 @@
         </div>
         <div class="detail-card">
           <div class="label">Informações</div>
-          <div class="value">${formatarRichText(vaga.atribuicoes || "-")}</div>
+          <div class="value">${sanitizeRichHtml(vaga.atribuicoes || "-")}</div>
         </div>
       </div>
     `;
