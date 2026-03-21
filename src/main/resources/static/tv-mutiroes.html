@@ -272,6 +272,7 @@
   const MODULO = "MUTIROES";
   let telaAtual = "1";
   let vagasCache = [];
+  let possuiTela2 = false;
   let titulosMutirao = {
     "1": "PAINEL DE MUTIRÕES - TELA 1",
     "2": "PAINEL DE MUTIRÕES - TELA 2"
@@ -291,6 +292,11 @@
   async function carregarVagas() {
     const res = await fetch(`/api/vagas/modulo?tipo=${MODULO}`);
     vagasCache = await res.json();
+    possuiTela2 = Array.isArray(vagasCache) && vagasCache.some(vaga => (vaga.tela || '1') === '2');
+    if (!possuiTela2) {
+      telaAtual = "1";
+    }
+    atualizarVisibilidadeNavegacao();
   }
 
   function renderizarTela() {
@@ -332,19 +338,38 @@
   }
 
   function alternarTela() {
+    if (!possuiTela2) {
+      telaAtual = "1";
+      renderizarTela();
+      animarBarra();
+      return;
+    }
     telaAtual = telaAtual === "1" ? "2" : "1";
     renderizarTela();
     animarBarra();
   }
 
   function irParaTela(delta) {
+    if (!possuiTela2) {
+      telaAtual = "1";
+      renderizarTela();
+      animarBarra();
+      return;
+    }
     telaAtual = delta < 0 ? "1" : "2";
     renderizarTela();
     animarBarra();
   }
 
+  function atualizarVisibilidadeNavegacao() {
+    const nav = document.getElementById('nav-buttons');
+    if (!nav) return;
+    nav.style.display = possuiTela2 ? 'flex' : 'none';
+  }
+
   let hideButtonsTimer;
   function mostrarBotoesTemporario() {
+    if (!possuiTela2) return;
     const nav = document.getElementById('nav-buttons');
     nav.classList.add('show');
     clearTimeout(hideButtonsTimer);

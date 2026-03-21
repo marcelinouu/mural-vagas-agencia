@@ -390,7 +390,6 @@
         <div class="d-flex flex-wrap gap-2">
             <button type="button" class="toolbar-chip" onclick="abrirSeletor()"><i class="bi bi-grid-1x2-fill"></i> Trocar módulo</button>
             <a id="btn-tv" target="_blank" class="toolbar-chip text-decoration-none text-dark"><i class="bi bi-tv-fill"></i> Abrir painel</a>
-            <a id="btn-mural" target="_blank" class="toolbar-chip text-decoration-none text-dark"><i class="bi bi-qr-code"></i> Abrir mural</a>
         </div>
     </div>
 
@@ -580,15 +579,13 @@
             key: "VAGAS",
             label: "Painel de Vagas",
             badgeClass: "vagas",
-            tvUrl: "/tv.html",
-            muralUrl: "/mural.html"
+            tvUrl: "/tv.html"
         },
         MUTIROES: {
             key: "MUTIROES",
             label: "Painel de Mutirões",
             badgeClass: "mutiroes",
-            tvUrl: "/tv-mutiroes.html",
-            muralUrl: "/mural-mutiroes.html"
+            tvUrl: "/tv-mutiroes.html"
         }
     };
 
@@ -643,8 +640,6 @@
             : '<i class="bi bi-briefcase-fill"></i> Vagas';
 
         document.getElementById('btn-tv').href = config.tvUrl;
-        document.getElementById('btn-mural').href = config.muralUrl;
-
         sairEdicao();
         carregarVagas();
         if (fechar) fecharSeletor();
