@@ -13,6 +13,15 @@ public interface VagaRepository extends JpaRepository<Vaga, Long> {
 
     @Query("""
             select v from Vaga v
+            where upper(coalesce(v.modulo, 'VAGAS')) = upper(:modulo)
+            order by
+              case when v.validade is null or v.validade = '' then 1 else 0 end,
+              v.validade asc
+            """)
+    List<Vaga> findByModuloOrderByValidadeAsc(@Param("modulo") String modulo);
+
+    @Query("""
+            select v from Vaga v
             order by
               case when v.validade is null or v.validade = '' then 1 else 0 end,
               v.validade asc
@@ -22,6 +31,7 @@ public interface VagaRepository extends JpaRepository<Vaga, Long> {
     @Query("""
             select v from Vaga v
             where upper(v.categoria) = upper(:categoria)
+              and upper(coalesce(v.modulo, 'VAGAS')) = 'VAGAS'
             order by
               case when v.validade is null or v.validade = '' then 1 else 0 end,
               v.validade asc

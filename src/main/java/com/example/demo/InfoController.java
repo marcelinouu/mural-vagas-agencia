@@ -44,6 +44,8 @@ public class InfoController {
         dto.processos = safeList(dto.processos);
         dto.cronograma = safeList(dto.cronograma);
         dto.processoVagas = safeList(dto.processoVagas);
+        dto.mutiraoTituloTela1 = nvl(dto.mutiraoTituloTela1);
+        dto.mutiraoTituloTela2 = nvl(dto.mutiraoTituloTela2);
 
         if (dto.processos.isEmpty() && (hasText(dto.empresaNome, dto.empresaData) || !dto.processoVagas.isEmpty())) {
             dto.processos.add(new ProcessoItem(dto.empresaNome, dto.empresaData, dto.processoVagas));
@@ -71,6 +73,8 @@ public class InfoController {
         dto.processoVagas = deserializeTextoLista(entity.getProcessoVagasJson());
         dto.empresaNome = nvl(entity.getEmpresaNome());
         dto.empresaData = nvl(entity.getEmpresaData());
+        dto.mutiraoTituloTela1 = nvl(entity.getMutiraoTituloTela1());
+        dto.mutiraoTituloTela2 = nvl(entity.getMutiraoTituloTela2());
 
         if ((dto.empresaNome.isBlank() && dto.empresaData.isBlank() && dto.processoVagas.isEmpty()) && !dto.processos.isEmpty()) {
             ProcessoItem principal = dto.processos.get(0);
@@ -96,6 +100,8 @@ public class InfoController {
         entity.setEmpresaNome(dto.empresaNome);
         entity.setEmpresaData(dto.empresaData);
         entity.setProcessoVagasJson(serializeTextoLista(dto.processoVagas));
+        entity.setMutiraoTituloTela1(dto.mutiraoTituloTela1);
+        entity.setMutiraoTituloTela2(dto.mutiraoTituloTela2);
         return entity;
     }
 
@@ -245,6 +251,8 @@ public class InfoController {
         public String empresaData = "";
         public List<String> processoVagas = new ArrayList<>();
         public List<CronogramaItem> cronograma = new ArrayList<>();
+        public String mutiraoTituloTela1 = "";
+        public String mutiraoTituloTela2 = "";
     }
 
     public static class Curso {

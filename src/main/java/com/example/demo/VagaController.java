@@ -5,11 +5,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import java.util.Comparator;
 import java.util.List;
 
 @RestController // Diz que essa classe vai responder requisições da Web
 @RequestMapping("/api/vagas") // O endereço base será: localhost:8080/vagas
 public class VagaController {
+
+    private static final String MODULO_VAGAS = Vaga.MODULO_VAGAS;
+    private static final String MODULO_MUTIROES = Vaga.MODULO_MUTIROES;
 
     @Autowired
     private VagaRepository repository; // Injeta o repositório que vc acabou de criar
@@ -20,8 +24,7 @@ public class VagaController {
     // Quem acessar isso enviando dados, vai salvar no banco
     @PostMapping
     public Vaga cadastrar(@RequestBody Vaga vaga) {
-        // Aqui você pode forçar salvar como maiúsculo se quiser
-        vaga.setCategoria(vaga.getCategoria().toUpperCase());
+        normalizarVaga(vaga);
         Vaga saved = repository.save(vaga);
         sseService.notifyChange();
         return saved;
@@ -30,7 +33,13 @@ public class VagaController {
     // 2. Listar TODAS as vagas (GET)
     @GetMapping
     public List<Vaga> listarTodas() {
-        return repository.findAllOrderByValidadeAsc();
+        return repository.findByModuloOrderByValidadeAsc(MODULO_VAGAS);
+    }
+
+    @GetMapping("/modulo")
+    public List<Vaga> listarPorModulo(@RequestParam String tipo) {
+        String modulo = normalizarModulo(tipo);
+        return ordenarPorModulo(repository.findByModuloOrderByValidadeAsc(modulo), modulo);
     }
 
     // 3. Listar por Categoria (GET) - O segredo da TV!
@@ -54,14 +63,17 @@ public class VagaController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vaga nao encontrada"));
 
         vaga.setCodigo(payload.getCodigo());
+        vaga.setEmpresa(payload.getEmpresa());
         vaga.setTitulo(payload.getTitulo());
         vaga.setSalario(payload.getSalario());
         vaga.setEscolaridade(payload.getEscolaridade());
         vaga.setLocal(payload.getLocal());
+        vaga.setTela(normalizarTela(payload.getTela()));
         vaga.setBeneficios(payload.getBeneficios());
         vaga.setAtribuicoes(payload.getAtribuicoes());
         vaga.setValidade(payload.getValidade());
         vaga.setCategoria(payload.getCategoria() == null ? null : payload.getCategoria().toUpperCase());
+        vaga.setModulo(normalizarModulo(payload.getModulo()));
         vaga.setExperiencia(payload.getExperiencia());
         vaga.setDescricao(payload.getDescricao());
 
@@ -82,7 +94,7 @@ public class VagaController {
         String headerValue = "attachment; filename=relatorio_vagas.pdf";
         response.setHeader(headerKey, headerValue);
 
-        List<Vaga> todasVagas = repository.findAllOrderByValidadeAsc();
+        List<Vaga> todasVagas = repository.findByModuloOrderByValidadeAsc(MODULO_VAGAS);
 
         try {
             com.lowagie.text.Document document = new com.lowagie.text.Document(com.lowagie.text.PageSize.A4);
@@ -178,6 +190,42 @@ public class VagaController {
         cell.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
         cell.setPadding(4);
         table.addCell(cell);
+    }
+
+    private void normalizarVaga(Vaga vaga) {
+        vaga.setCategoria(vaga.getCategoria() == null ? null : vaga.getCategoria().toUpperCase());
+        vaga.setModulo(normalizarModulo(vaga.getModulo()));
+        vaga.setTela(normalizarTela(vaga.getTela()));
+    }
+
+    private String normalizarModulo(String modulo) {
+        if (modulo == null || modulo.isBlank()) {
+            return MODULO_VAGAS;
+        }
+        String upper = modulo.trim().toUpperCase();
+        if (MODULO_MUTIROES.equals(upper)) {
+            return MODULO_MUTIROES;
+        }
+        return MODULO_VAGAS;
+    }
+
+    static List<Vaga> ordenarPorModulo(List<Vaga> vagas, String modulo) {
+        if (!MODULO_MUTIROES.equals(modulo)) {
+            return vagas;
+        }
+        return vagas.stream()
+                .sorted(Comparator
+                        .comparing((Vaga v) -> normalizarTela(v.getTela()))
+                        .thenComparing(v -> normalizarTextoOrdenacao(v.getEmpresa())))
+                .toList();
+    }
+
+    private static String normalizarTextoOrdenacao(String valor) {
+        return valor == null ? "" : valor.trim().toUpperCase();
+    }
+
+    private static String normalizarTela(String valor) {
+        return "2".equals(valor) ? "2" : "1";
     }
 }
 

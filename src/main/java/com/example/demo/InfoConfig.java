@@ -35,6 +35,12 @@ public class InfoConfig {
     @Column(name = "processo_vagas_json")
     private String processoVagasJson;
 
+    @Column(name = "mutirao_titulo_tela1")
+    private String mutiraoTituloTela1;
+
+    @Column(name = "mutirao_titulo_tela2")
+    private String mutiraoTituloTela2;
+
     public Long getId() {
         return id;
     }
@@ -89,5 +95,21 @@ public class InfoConfig {
 
     public void setProcessoVagasJson(String processoVagasJson) {
         this.processoVagasJson = processoVagasJson;
+    }
+
+    public String getMutiraoTituloTela1() {
+        return mutiraoTituloTela1;
+    }
+
+    public void setMutiraoTituloTela1(String mutiraoTituloTela1) {
+        this.mutiraoTituloTela1 = mutiraoTituloTela1;
+    }
+
+    public String getMutiraoTituloTela2() {
+        return mutiraoTituloTela2;
+    }
+
+    public void setMutiraoTituloTela2(String mutiraoTituloTela2) {
+        this.mutiraoTituloTela2 = mutiraoTituloTela2;
     }
 }

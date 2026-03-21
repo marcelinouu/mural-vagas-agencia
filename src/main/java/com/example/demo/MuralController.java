@@ -27,6 +27,9 @@ import java.util.Map;
 @RequestMapping("/api/mural")
 public class MuralController {
 
+    private static final String MODULO_VAGAS = Vaga.MODULO_VAGAS;
+    private static final String MODULO_MUTIROES = Vaga.MODULO_MUTIROES;
+
     private final VagaRepository vagaRepository;
     private final InfoController infoController;
     private final MuralTokenService tokenService;
@@ -38,12 +41,13 @@ public class MuralController {
     }
 
     @GetMapping("/token")
-    public TokenResponse issueToken(HttpServletRequest request) {
+    public TokenResponse issueToken(@RequestParam(name = "m", required = false) String modulo, HttpServletRequest request) {
         String ip = resolveClientIp(request);
         MuralTokenService.IssuedToken issued = tokenService.issueQrToken(ip);
-        String muralUrl = buildMuralUrl(issued.token());
-        String qrUrl = "/api/mural/qr?t=" + urlEncode(issued.token());
-        return new TokenResponse(issued.token(), issued.expiresAtEpochSeconds(), muralUrl, qrUrl);
+        String normalizedModule = normalizeModulo(modulo);
+        String muralUrl = buildMuralUrl(issued.token(), normalizedModule);
+        String qrUrl = "/api/mural/qr?t=" + urlEncode(issued.token()) + "&m=" + urlEncode(normalizedModule);
+        return new TokenResponse(issued.token(), issued.expiresAtEpochSeconds(), normalizedModule, muralUrl, qrUrl);
     }
 
     @GetMapping("/session")
@@ -64,20 +68,27 @@ public class MuralController {
     }
 
     @GetMapping("/data")
-    public MuralDataResponse data(@RequestParam("t") String token, HttpServletRequest request) {
+    public MuralDataResponse data(@RequestParam("t") String token,
+                                  @RequestParam(name = "m", required = false) String modulo,
+                                  HttpServletRequest request) {
         MuralTokenService.ValidationResult result = tokenService.validate(token, resolveClientIp(request), "SESSION");
         if (!result.valid()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso do mural invalido para esta rede.");
         }
 
-        List<Vaga> vagas = vagaRepository.findAllOrderByValidadeAsc();
+        String normalizedModule = normalizeModulo(modulo);
+        List<Vaga> vagas = VagaController.ordenarPorModulo(
+                vagaRepository.findByModuloOrderByValidadeAsc(normalizedModule),
+                normalizedModule
+        );
         InfoController.InfoDTO infos = infoController.getInfos();
-        return new MuralDataResponse(vagas, infos, result.expiresAtEpochSeconds());
+        return new MuralDataResponse(vagas, infos, normalizedModule, result.expiresAtEpochSeconds());
     }
 
     @GetMapping(value = "/qr", produces = MediaType.IMAGE_PNG_VALUE)
-    public ResponseEntity<byte[]> qr(@RequestParam("t") String token, HttpServletRequest request) {
-        String muralUrl = buildMuralUrl(token);
+    public ResponseEntity<byte[]> qr(@RequestParam("t") String token,
+                                     @RequestParam(name = "m", required = false) String modulo) {
+        String muralUrl = buildMuralUrl(token, normalizeModulo(modulo));
         byte[] png = gerarQrPng(muralUrl, 280);
         return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(png);
     }
@@ -97,9 +108,10 @@ public class MuralController {
         }
     }
 
-    private String buildMuralUrl(String token) {
+    private String buildMuralUrl(String token, String modulo) {
         String base = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-        return base + "/mural.html?t=" + urlEncode(token);
+        String path = MODULO_MUTIROES.equals(modulo) ? "/mural-mutiroes.html" : "/mural.html";
+        return base + path + "?t=" + urlEncode(token);
     }
 
     private String resolveClientIp(HttpServletRequest request) {
@@ -114,8 +126,15 @@ public class MuralController {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
-    public record TokenResponse(String token, long expiresAtEpochSeconds, String muralUrl, String qrUrl) {}
+    private String normalizeModulo(String modulo) {
+        if (modulo == null || modulo.isBlank()) {
+            return MODULO_VAGAS;
+        }
+        return MODULO_MUTIROES.equalsIgnoreCase(modulo) ? MODULO_MUTIROES : MODULO_VAGAS;
+    }
+
+    public record TokenResponse(String token, long expiresAtEpochSeconds, String modulo, String muralUrl, String qrUrl) {}
     public record SessionResponse(String token, long expiresAtEpochSeconds) {}
     public record ValidationResponse(boolean valid, boolean expired, boolean wrongNetwork, boolean wrongType, long expiresAtEpochSeconds) {}
-    public record MuralDataResponse(List<Vaga> vagas, InfoController.InfoDTO infos, long expiresAtEpochSeconds) {}
+    public record MuralDataResponse(List<Vaga> vagas, InfoController.InfoDTO infos, String modulo, long expiresAtEpochSeconds) {}
 }
