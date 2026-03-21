@@ -41,6 +41,12 @@ public class InfoConfig {
     @Column(name = "mutirao_titulo_tela2")
     private String mutiraoTituloTela2;
 
+    @Column(name = "mutirao_tema_cor")
+    private String mutiraoTemaCor;
+
+    @Column(name = "mutirao_rodape_cor")
+    private String mutiraoRodapeCor;
+
     public Long getId() {
         return id;
     }
@@ -111,5 +117,21 @@ public class InfoConfig {
 
     public void setMutiraoTituloTela2(String mutiraoTituloTela2) {
         this.mutiraoTituloTela2 = mutiraoTituloTela2;
+    }
+
+    public String getMutiraoTemaCor() {
+        return mutiraoTemaCor;
+    }
+
+    public void setMutiraoTemaCor(String mutiraoTemaCor) {
+        this.mutiraoTemaCor = mutiraoTemaCor;
+    }
+
+    public String getMutiraoRodapeCor() {
+        return mutiraoRodapeCor;
+    }
+
+    public void setMutiraoRodapeCor(String mutiraoRodapeCor) {
+        this.mutiraoRodapeCor = mutiraoRodapeCor;
     }
 }

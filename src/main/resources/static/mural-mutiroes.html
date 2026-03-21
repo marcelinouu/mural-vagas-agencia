@@ -326,6 +326,35 @@
   let expiraEm = 0;
   let sessionToken = null;
 
+  function hexToRgb(hex) {
+    const value = (hex || "").replace("#", "");
+    if (value.length !== 6) return null;
+    return {
+      r: parseInt(value.slice(0, 2), 16),
+      g: parseInt(value.slice(2, 4), 16),
+      b: parseInt(value.slice(4, 6), 16)
+    };
+  }
+
+  function mixColor(hex, targetHex, weight) {
+    const a = hexToRgb(hex);
+    const b = hexToRgb(targetHex);
+    if (!a || !b) return hex;
+    const mix = (x, y) => Math.round(x + (y - x) * weight);
+    const toHex = (n) => n.toString(16).padStart(2, "0");
+    return `#${toHex(mix(a.r, b.r))}${toHex(mix(a.g, b.g))}${toHex(mix(a.b, b.b))}`;
+  }
+
+  function aplicarTemaMutirao(cor) {
+    const tema = /^#[0-9a-fA-F]{6}$/.test(cor || "") ? cor : "#1f4f8a";
+    document.documentElement.style.setProperty("--brand", tema);
+    document.documentElement.style.setProperty("--brand-deep", mixColor(tema, "#000000", 0.25));
+    document.documentElement.style.setProperty("--brand-soft", mixColor(tema, "#ffffff", 0.86));
+    document.documentElement.style.setProperty("--bg", mixColor(tema, "#ffffff", 0.93));
+    document.documentElement.style.setProperty("--panel", mixColor(tema, "#ffffff", 0.96));
+    document.documentElement.style.setProperty("--line", mixColor(tema, "#ffffff", 0.84));
+  }
+
   function escaparHtml(valor) {
     return (valor || "")
       .replace(/&/g, "&amp;")
@@ -451,6 +480,9 @@
     const res = await apiFetch(`/api/mural/data?t=${encodeURIComponent(sessionToken)}&m=${MODULO}`);
     if (!res.ok) throw new Error("Acesso negado");
     dataAtual = await res.json();
+    if (dataAtual && dataAtual.infos) {
+      aplicarTemaMutirao(dataAtual.infos.mutiraoTemaCor);
+    }
     expiraEm = dataAtual.expiresAtEpochSeconds || 0;
     renderConteudo();
     statusSessao();

@@ -15,6 +15,7 @@
       --progress-height: 4px;
       --brand: #1f4f8a;
       --bg: #edf2f8;
+      --footer-bg: #6889ec;
     }
 
     html, body {
@@ -121,7 +122,7 @@
 
     .rodape {
       height: var(--footer-height);
-      background: #6889ec;
+      background: var(--footer-bg);
       border-top: 1px solid #d6dee8;
       position: fixed;
       left: 0;
@@ -278,6 +279,36 @@
     "2": "PAINEL DE MUTIRÕES - TELA 2"
   };
 
+  function hexToRgb(hex) {
+    const value = (hex || '').replace('#', '');
+    if (value.length !== 6) return null;
+    return {
+      r: parseInt(value.slice(0, 2), 16),
+      g: parseInt(value.slice(2, 4), 16),
+      b: parseInt(value.slice(4, 6), 16)
+    };
+  }
+
+  function mixColor(hex, targetHex, weight) {
+    const a = hexToRgb(hex);
+    const b = hexToRgb(targetHex);
+    if (!a || !b) return hex;
+    const mix = (x, y) => Math.round(x + (y - x) * weight);
+    const toHex = (n) => n.toString(16).padStart(2, '0');
+    return `#${toHex(mix(a.r, b.r))}${toHex(mix(a.g, b.g))}${toHex(mix(a.b, b.b))}`;
+  }
+
+  function aplicarTemaMutirao(cor) {
+    const tema = /^#[0-9a-fA-F]{6}$/.test(cor || '') ? cor : '#1f4f8a';
+    document.documentElement.style.setProperty('--brand', tema);
+    document.documentElement.style.setProperty('--bg', mixColor(tema, '#ffffff', 0.92));
+  }
+
+  function aplicarCorRodape(cor) {
+    const rodape = /^#[0-9a-fA-F]{6}$/.test(cor || '') ? cor : '#6889ec';
+    document.documentElement.style.setProperty('--footer-bg', rodape);
+  }
+
   async function carregarTitulos() {
     try {
       const res = await fetch('/api/infos');
@@ -286,6 +317,8 @@
         "1": infos.mutiraoTituloTela1 || "PAINEL DE MUTIRÕES - TELA 1",
         "2": infos.mutiraoTituloTela2 || "PAINEL DE MUTIRÕES - TELA 2"
       };
+      aplicarTemaMutirao(infos.mutiraoTemaCor);
+      aplicarCorRodape(infos.mutiraoRodapeCor);
     } catch (_) {}
   }
 

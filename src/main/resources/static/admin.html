@@ -501,6 +501,14 @@
                         <label class="campo-label" for="mutiraoTituloTela2">Título da Tela 2</label>
                         <input type="text" id="mutiraoTituloTela2" class="form-control" placeholder="Ex.: PAINEL DE MUTIRÕES - TELA 2">
                     </div>
+                    <div class="col-md-6">
+                        <label class="campo-label" for="mutiraoTemaCor">Cor do tema do mutirão</label>
+                        <input type="color" id="mutiraoTemaCor" class="form-control form-control-color">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="campo-label" for="mutiraoRodapeCor">Cor do rodapé do mutirão</label>
+                        <input type="color" id="mutiraoRodapeCor" class="form-control form-control-color">
+                    </div>
                 </div>
                 <button type="button" class="btn btn-dark mt-3" onclick="salvarTitulosMutiroes()">Salvar títulos das telas</button>
             </div>
@@ -971,6 +979,8 @@
                 const cronograma = Array.isArray(d.cronograma) ? d.cronograma : [];
                 document.getElementById('mutiraoTituloTela1').value = d.mutiraoTituloTela1 || '';
                 document.getElementById('mutiraoTituloTela2').value = d.mutiraoTituloTela2 || '';
+                document.getElementById('mutiraoTemaCor').value = d.mutiraoTemaCor || '#1f4f8a';
+                document.getElementById('mutiraoRodapeCor').value = d.mutiraoRodapeCor || '#6889ec';
 
                 document.getElementById('cursos-list').innerHTML = '';
                 document.getElementById('processos-list').innerHTML = '';
@@ -988,7 +998,9 @@
             processos: [],
             cronograma: [],
             mutiraoTituloTela1: document.getElementById('mutiraoTituloTela1').value.trim(),
-            mutiraoTituloTela2: document.getElementById('mutiraoTituloTela2').value.trim()
+            mutiraoTituloTela2: document.getElementById('mutiraoTituloTela2').value.trim(),
+            mutiraoTemaCor: document.getElementById('mutiraoTemaCor').value || '#1f4f8a',
+            mutiraoRodapeCor: document.getElementById('mutiraoRodapeCor').value || '#6889ec'
         };
 
         document.querySelectorAll('#cursos-list .info-row').forEach(row => {
@@ -1047,7 +1059,9 @@
             cronograma: Array.isArray(base.cronograma) ? base.cronograma : [],
             processoVagas: Array.isArray(base.processoVagas) ? base.processoVagas : [],
             mutiraoTituloTela1: document.getElementById('mutiraoTituloTela1').value.trim(),
-            mutiraoTituloTela2: document.getElementById('mutiraoTituloTela2').value.trim()
+            mutiraoTituloTela2: document.getElementById('mutiraoTituloTela2').value.trim(),
+            mutiraoTemaCor: document.getElementById('mutiraoTemaCor').value || '#1f4f8a',
+            mutiraoRodapeCor: document.getElementById('mutiraoRodapeCor').value || '#6889ec'
         };
 
         fetch(API_INFOS, {
