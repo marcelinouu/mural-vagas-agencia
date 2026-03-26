@@ -476,6 +476,19 @@
       }
   }
 
+  function limparCacheCategoria(categoria) {
+      cacheDados.delete(categoria);
+      try {
+          localStorage.removeItem(cacheKey(categoria));
+      } catch (e) {
+          // Ignora falhas de armazenamento.
+      }
+  }
+
+  function limparTodosOsCaches() {
+      categorias.forEach((categoria) => limparCacheCategoria(categoria));
+  }
+
   function cacheExistente(categoria) {
       return !!cacheDados.get(categoria) || !!lerCachePersistente(categoria);
   }
@@ -896,13 +909,7 @@
   }
 
   function forcarAtualizacao() {
-      const categoriaAtual = categorias[indiceAtual];
-      const item = cacheDados.get(categoriaAtual);
-      if (item && item.dados) {
-          cacheDados.set(categoriaAtual, { dados: item.dados, timestamp: 0 });
-      } else {
-          cacheDados.delete(categoriaAtual);
-      }
+      limparTodosOsCaches();
       renderizarCategoria();
   }
 

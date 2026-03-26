@@ -19,9 +19,11 @@ public class InfoController {
     private static final long CONFIG_ID = 1L;
 
     private final InfoConfigRepository repository;
+    private final VagaSseService sseService;
 
-    public InfoController(InfoConfigRepository repository) {
+    public InfoController(InfoConfigRepository repository, VagaSseService sseService) {
         this.repository = repository;
+        this.sseService = sseService;
     }
 
     @GetMapping
@@ -35,6 +37,7 @@ public class InfoController {
     public void atualizarInfos(@RequestBody InfoDTO novosDados) {
         InfoDTO dto = normalizar(novosDados);
         repository.save(toEntity(dto));
+        sseService.notifyChange();
     }
 
     private InfoDTO normalizar(InfoDTO entrada) {

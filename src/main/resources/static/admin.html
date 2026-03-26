@@ -46,6 +46,28 @@
             font-weight: 700;
         }
 
+        .view-switch {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .view-chip {
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: #fff;
+            padding: 10px 16px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .view-chip.active {
+            background: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+        }
+
         .module-card {
             padding: 22px;
             cursor: pointer;
@@ -149,6 +171,17 @@
         .print-card {
             padding: 18px;
             min-height: 100%;
+        }
+
+        .info-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .info-actions .btn {
+            flex: 1 1 220px;
         }
 
         .print-preview-grid {
@@ -393,7 +426,54 @@
         </div>
     </div>
 
-    <div class="row g-4">
+    <div class="view-switch" id="vagas-view-switch" style="display:none;">
+        <button type="button" class="view-chip active" id="btn-view-vagas" onclick="selecionarPainelVagas('vagas')">
+            <i class="bi bi-briefcase-fill"></i> Gerenciar vagas
+        </button>
+        <button type="button" class="view-chip" id="btn-view-infos" onclick="selecionarPainelVagas('infos')">
+            <i class="bi bi-layout-text-window-reverse"></i> Gerenciar tela informativa
+        </button>
+    </div>
+
+    <div class="shell-card mb-4" id="infos-shell" style="display:none;">
+        <div class="section-title">Tela informativa do Painel de Vagas</div>
+        <form id="formInfos">
+            <div class="info-actions">
+                <button type="button" class="btn btn-outline-primary" onclick="addCurso()">
+                    <i class="bi bi-plus-circle"></i> Adicionar curso
+                </button>
+                <button type="button" class="btn btn-outline-success" onclick="addProcesso()">
+                    <i class="bi bi-plus-circle"></i> Adicionar empresa
+                </button>
+                <button type="button" class="btn btn-outline-danger" onclick="addCronograma()">
+                    <i class="bi bi-plus-circle"></i> Adicionar evento
+                </button>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="print-card">
+                        <h5 class="text-primary fw-bold">Cursos</h5>
+                        <div id="cursos-list"></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="print-card">
+                        <h5 class="text-success fw-bold">Processo seletivo</h5>
+                        <div id="processos-list"></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="print-card">
+                        <h5 class="text-danger fw-bold">Calendário</h5>
+                        <div id="cronograma-list"></div>
+                    </div>
+                </div>
+            </div>
+            <button type="button" onclick="salvarInfos()" class="btn btn-dark w-100 mt-4">Salvar informações</button>
+        </form>
+    </div>
+
+    <div class="row g-4" id="vagas-management">
         <div class="col-lg-4">
             <div class="shell-card">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -538,35 +618,6 @@
                 </div>
             </div>
 
-            <div class="shell-card" id="infos-shell">
-                <div class="section-title">Tela informativa do Painel de Vagas</div>
-                <form id="formInfos">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <div class="print-card">
-                                <h5 class="text-primary fw-bold">Cursos</h5>
-                                <div id="cursos-list"></div>
-                                <button type="button" class="btn btn-outline-primary btn-sm w-100 mt-2" onclick="addCurso()">Adicionar curso</button>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="print-card">
-                                <h5 class="text-success fw-bold">Processo seletivo</h5>
-                                <div id="processos-list"></div>
-                                <button type="button" class="btn btn-outline-success btn-sm w-100 mt-2" onclick="addProcesso()">Adicionar empresa</button>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="print-card">
-                                <h5 class="text-danger fw-bold">Calendário</h5>
-                                <div id="cronograma-list"></div>
-                                <button type="button" class="btn btn-outline-danger btn-sm w-100 mt-2" onclick="addCronograma()">Adicionar evento</button>
-                            </div>
-                        </div>
-                    </div>
-                    <button type="button" onclick="salvarInfos()" class="btn btn-dark w-100 mt-4">Salvar informações</button>
-                </form>
-            </div>
         </div>
     </div>
 </div>
@@ -601,6 +652,7 @@
     let editId = null;
     let vagasCache = [];
     let infosCache = null;
+    let painelVagasView = 'vagas';
 
     function abrirSeletor() {
         document.getElementById('module-picker').style.display = 'flex';
@@ -614,6 +666,7 @@
         moduloAtual = MODULOS[modulo] ? modulo : "VAGAS";
         const config = MODULOS[moduloAtual];
         const isMutirao = moduloAtual === 'MUTIROES';
+        const switcher = document.getElementById('vagas-view-switch');
 
         document.getElementById('group-codigo').classList.toggle('d-none', isMutirao);
         document.getElementById('group-empresa').classList.toggle('d-none', !isMutirao);
@@ -627,7 +680,6 @@
         document.getElementById('group-validade').style.display = isMutirao ? 'none' : 'block';
         document.getElementById('group-tipo').style.display = isMutirao ? 'none' : 'block';
         document.getElementById('group-experiencia').style.display = isMutirao ? 'none' : 'block';
-        document.getElementById('infos-shell').style.display = isMutirao ? 'none' : 'block';
         document.getElementById('mutirao-titulos-shell').style.display = isMutirao ? 'block' : 'none';
         document.getElementById('form-title').textContent = isMutirao ? 'Novo Mutirão' : 'Nova Vaga';
         document.getElementById('form-subtitle').textContent = isMutirao
@@ -648,9 +700,22 @@
             : '<i class="bi bi-briefcase-fill"></i> Vagas';
 
         document.getElementById('btn-tv').href = config.tvUrl;
+        switcher.style.display = isMutirao ? 'none' : 'flex';
+        selecionarPainelVagas(isMutirao ? 'vagas' : painelVagasView);
         sairEdicao();
         carregarVagas();
         if (fechar) fecharSeletor();
+    }
+
+    function selecionarPainelVagas(view) {
+        painelVagasView = view === 'infos' ? 'infos' : 'vagas';
+        const isModuloVagas = moduloAtual === 'VAGAS';
+        const mostrandoInfos = isModuloVagas && painelVagasView === 'infos';
+
+        document.getElementById('infos-shell').style.display = mostrandoInfos ? 'block' : 'none';
+        document.getElementById('vagas-management').style.display = mostrandoInfos ? 'none' : '';
+        document.getElementById('btn-view-vagas').classList.toggle('active', !mostrandoInfos);
+        document.getElementById('btn-view-infos').classList.toggle('active', mostrandoInfos);
     }
 
     function formatarDataBR(valor) {
