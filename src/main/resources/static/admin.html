@@ -311,6 +311,19 @@
                 height: 198mm !important;
                 padding: 0 !important;
                 margin: 0 !important;
+                overflow: hidden !important;
+            }
+
+            body.print-mutirao-single #print-area,
+            body.print-mutirao-single #print-area * {
+                font-family: Arial, sans-serif !important;
+                font-size: 25pt !important;
+            }
+
+            body.print-mutirao-single #print-kicker,
+            body.print-mutirao-single #print-heading,
+            body.print-mutirao-single #print-description {
+                display: none !important;
             }
 
             .print-preview-grid {
@@ -333,6 +346,9 @@
                 box-sizing: border-box;
                 display: grid;
                 grid-template-rows: auto 1fr;
+                overflow: hidden;
+                page-break-after: avoid;
+                break-after: avoid-page;
             }
 
             body.print-mutirao-single .print-card-top {
@@ -340,8 +356,8 @@
                 align-items: flex-start;
             }
 
-            body.print-mutirao-single .print-code {
-                font-size: 48pt;
+            body.print-mutirao-single #print-area .print-code {
+                font-size: 40pt !important;
                 font-weight: 900 !important;
                 padding: 0;
                 background: transparent;
