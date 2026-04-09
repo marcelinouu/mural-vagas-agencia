@@ -292,6 +292,24 @@
             box-shadow: 0 0 0 0.2rem rgba(13,110,253,.25);
         }
 
+        .search-toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .search-toolbar .input-group {
+            flex: 1 1 320px;
+        }
+
+        .search-status {
+            font-size: 0.9rem;
+            color: #5a6c7d;
+            font-weight: 600;
+        }
+
         @media print {
             body {
                 background: #fff;
@@ -617,6 +635,20 @@
                     </div>
                     <span class="module-badge" id="table-badge"></span>
                 </div>
+                <div class="search-toolbar">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input
+                            type="text"
+                            id="busca-vagas"
+                            class="form-control"
+                            placeholder="Buscar vaga por código ou título"
+                            autocomplete="off"
+                        >
+                        <button type="button" class="btn btn-outline-secondary" id="btn-limpar-busca">Limpar</button>
+                    </div>
+                    <div class="search-status" id="busca-status">Exibindo todos os registros.</div>
+                </div>
                 <div class="table-responsive">
                     <table class="table align-middle">
                         <thead class="table-light">
@@ -669,6 +701,7 @@
     let vagasCache = [];
     let infosCache = null;
     let painelVagasView = 'vagas';
+    let termoBusca = '';
 
     function abrirSeletor() {
         document.getElementById('module-picker').style.display = 'flex';
@@ -683,6 +716,8 @@
         const config = MODULOS[moduloAtual];
         const isMutirao = moduloAtual === 'MUTIROES';
         const switcher = document.getElementById('vagas-view-switch');
+        const campoBusca = document.getElementById('busca-vagas');
+        const statusBusca = document.getElementById('busca-status');
 
         document.getElementById('group-codigo').classList.toggle('d-none', isMutirao);
         document.getElementById('group-empresa').classList.toggle('d-none', !isMutirao);
@@ -716,6 +751,12 @@
             : '<i class="bi bi-briefcase-fill"></i> Vagas';
 
         document.getElementById('btn-tv').href = config.tvUrl;
+        termoBusca = '';
+        campoBusca.value = '';
+        campoBusca.placeholder = isMutirao
+            ? 'Buscar mutirão por empresa ou informações'
+            : 'Buscar vaga por código ou título';
+        statusBusca.textContent = 'Exibindo todos os registros.';
         switcher.style.display = isMutirao ? 'none' : 'flex';
         selecionarPainelVagas(isMutirao ? 'vagas' : painelVagasView);
         sairEdicao();
@@ -763,42 +804,95 @@
         document.execCommand('bold');
     }
 
+    function normalizarBusca(valor) {
+        return (valor || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim()
+            .toLowerCase();
+    }
+
+    function obterVagasFiltradas() {
+        const termoNormalizado = normalizarBusca(termoBusca);
+        if (!termoNormalizado) {
+            return vagasCache;
+        }
+
+        return vagasCache.filter(vaga => {
+            const identificador = moduloAtual === 'MUTIROES' ? vaga.empresa : vaga.codigo;
+            const conteudo = moduloAtual === 'MUTIROES' ? vaga.atribuicoes : vaga.titulo;
+            return [identificador, conteudo].some(valor => normalizarBusca(valor).includes(termoNormalizado));
+        });
+    }
+
+    function atualizarStatusBusca(totalFiltradas, totalGeral) {
+        const status = document.getElementById('busca-status');
+        if (!totalGeral) {
+            status.textContent = 'Nenhum registro cadastrado neste módulo.';
+            return;
+        }
+
+        if (!termoBusca.trim()) {
+            status.textContent = `Exibindo ${totalGeral} registro(s).`;
+            return;
+        }
+
+        if (!totalFiltradas) {
+            status.textContent = 'Nenhum registro encontrado para esta busca.';
+            return;
+        }
+
+        status.textContent = `Encontrado(s) ${totalFiltradas} de ${totalGeral} registro(s).`;
+    }
+
+    function renderizarTabelaVagas() {
+        const tbody = document.getElementById('tabela-vagas');
+        const vagasFiltradas = obterVagasFiltradas();
+        const colspan = moduloAtual === 'MUTIROES' ? 6 : 5;
+        tbody.innerHTML = '';
+
+        atualizarStatusBusca(vagasFiltradas.length, vagasCache.length);
+
+        if (!vagasCache.length) {
+            tbody.innerHTML = `<tr><td colspan="${colspan}" class="text-center text-secondary py-4">Nenhum registro cadastrado neste módulo.</td></tr>`;
+            return;
+        }
+
+        if (!vagasFiltradas.length) {
+            tbody.innerHTML = `<tr><td colspan="${colspan}" class="text-center text-secondary py-4">Nenhum registro encontrado para o termo informado.</td></tr>`;
+            return;
+        }
+
+        vagasFiltradas.forEach(v => {
+            const identificador = moduloAtual === 'MUTIROES' ? (v.empresa || '-') : (v.codigo || '-');
+            const titulo = moduloAtual === 'MUTIROES' ? (v.atribuicoes || '-') : (v.titulo || '-');
+            const categoria = moduloAtual === 'MUTIROES' ? `Tela ${v.tela || '1'}` : (v.categoria || '-');
+            const validade = moduloAtual === 'MUTIROES' ? '-' : formatarDataBR(v.validade);
+            const imprimirCell = moduloAtual === 'MUTIROES'
+                ? `<td><button onclick="imprimirCardMutirao(${v.id})" class="btn btn-outline-dark btn-sm"><i class="bi bi-printer"></i></button></td>`
+                : '';
+            tbody.innerHTML += `
+                <tr>
+                    <td>${identificador}</td>
+                    <td><strong>${titulo}</strong></td>
+                    <td>${categoria}</td>
+                    <td>${validade}</td>
+                    ${imprimirCell}
+                    <td class="text-end">
+                        <button onclick="editarVaga(${v.id})" class="btn btn-outline-secondary btn-sm me-1"><i class="bi bi-pencil"></i></button>
+                        <button onclick="deletarVaga(${v.id})" class="btn btn-danger btn-sm">Excluir</button>
+                    </td>
+                </tr>`;
+        });
+    }
+
     function carregarVagas() {
         if (!moduloAtual) return;
         fetch(endpointModulo())
             .then(res => res.json())
             .then(vagas => {
                 vagasCache = Array.isArray(vagas) ? vagas : [];
-                const tbody = document.getElementById('tabela-vagas');
-                tbody.innerHTML = '';
-
-                if (!vagasCache.length) {
-                    const colspan = moduloAtual === 'MUTIROES' ? 6 : 5;
-                    tbody.innerHTML = `<tr><td colspan="${colspan}" class="text-center text-secondary py-4">Nenhum registro cadastrado neste módulo.</td></tr>`;
-                    return;
-                }
-
-                vagasCache.forEach(v => {
-                    const identificador = moduloAtual === 'MUTIROES' ? (v.empresa || '-') : (v.codigo || '-');
-                    const titulo = moduloAtual === 'MUTIROES' ? (v.atribuicoes || '-') : (v.titulo || '-');
-                    const categoria = moduloAtual === 'MUTIROES' ? `Tela ${v.tela || '1'}` : (v.categoria || '-');
-                    const validade = moduloAtual === 'MUTIROES' ? '-' : formatarDataBR(v.validade);
-                    const imprimirCell = moduloAtual === 'MUTIROES'
-                        ? `<td><button onclick="imprimirCardMutirao(${v.id})" class="btn btn-outline-dark btn-sm"><i class="bi bi-printer"></i></button></td>`
-                        : '';
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${identificador}</td>
-                            <td><strong>${titulo}</strong></td>
-                            <td>${categoria}</td>
-                            <td>${validade}</td>
-                            ${imprimirCell}
-                            <td class="text-end">
-                                <button onclick="editarVaga(${v.id})" class="btn btn-outline-secondary btn-sm me-1"><i class="bi bi-pencil"></i></button>
-                                <button onclick="deletarVaga(${v.id})" class="btn btn-danger btn-sm">Excluir</button>
-                            </td>
-                        </tr>`;
-                });
+                renderizarTabelaVagas();
             });
     }
 
@@ -889,6 +983,15 @@
     }
 
     document.getElementById('btn-cancelar-edicao').addEventListener('click', sairEdicao);
+    document.getElementById('busca-vagas').addEventListener('input', function(event) {
+        termoBusca = event.target.value || '';
+        renderizarTabelaVagas();
+    });
+    document.getElementById('btn-limpar-busca').addEventListener('click', function() {
+        termoBusca = '';
+        document.getElementById('busca-vagas').value = '';
+        renderizarTabelaVagas();
+    });
 
     function montarCardsImpressao() {
         const grid = document.getElementById('print-grid');
