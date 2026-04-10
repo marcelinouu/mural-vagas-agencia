@@ -1,4 +1,4 @@
-const CACHE_VERSION = "mural-v1";
+const CACHE_VERSION = "mural-v2";
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const API_CACHE = `api-${CACHE_VERSION}`;
 
@@ -7,7 +7,7 @@ const STATIC_ASSETS = [
   "/mural.html",
   "/tv.html",
   "/admin.html",
-  "/logo.png",
+  "/logo-agencia-2026.png",
   "/manifest.json",
   "/sw.js"
 ];
